@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>v-on</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      #app {
+        width: 300px;
+        height: 100px;
+        margin: 10px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 1.无传参方式：默认以函数名方式调用 -->
+      <button @click="fn">按钮1</button>
+      <!-- 2.函数参数调用：如果我们在调用函数的时候需要传参，请在绑定处理函数名后加上括号并传入参数 -->
+      <button @click="fn1(1)">按钮2</button>
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script>
+      Vue.config.productionTip = false
+      const app = new Vue({
+        el: '#app',
+        data: {},
+        methods: {
+          fn() {
+            console.log('这是一个fn函数')
+          },
+          fn1(a) {
+            console.log('这是一个fn1函数')
+            console.log(`传递过来的参数为${a}`)
+          },
+        },
+      })
+    </script>
+  </body>
+</html>

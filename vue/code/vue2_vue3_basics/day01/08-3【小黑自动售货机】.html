@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      #app div {
+        width: 300px;
+        height: 200px;
+        margin: 20px;
+        padding: 50px 0 0 20px;
+        border: 5px solid #000;
+        border-radius: 10px;
+      }
+      #app h1 {
+        margin-bottom: 20px;
+      }
+      #app button:nth-child(1) {
+        margin-right: 10px;
+      }
+      #app p {
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div>
+        <h1>小黑自动售货机</h1>
+        <button @click="buy(3)">可乐3元一瓶</button>
+        <button @click="buy(10)">咖啡10元一杯</button>
+        <button @click="buy(8)">牛奶8元一杯</button>
+      </div>
+      <p>银行卡余额：{{money}} 元</p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script>
+      Vue.config.productionTip = false
+
+      const app = new Vue({
+        el: '#app',
+        data: {
+          money: 100,
+        },
+        methods: {
+          buy(x) {
+            if (this.money - x < 0) return alert('余额不足!')
+            this.money = this.money - x
+          },
+        },
+      })
+    </script>
+  </body>
+</html>
