@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      姓：<input type="text" v-model="firstname" /><br />
+      名：<input type="text" v-model="lastname" /><br />
+      <p>姓名：{{fullname}}</p>
+      <button @click="changeName">修改姓名</button>
+    </div>
+    <script src="./js/vue.js"></script>
+    <script>
+      const app = new Vue({
+        el: '#app',
+        data: {
+          firstname: '刘',
+          lastname: '备',
+        },
+        computed: {
+          // 简写： 没有配置 setter 逻辑
+          //   fullname() {
+          //     return this.firstname + this.lastname
+          //   },
+          // 完整写法：获取 + 设置
+          fullname: {
+            // (1)当fullname计算属性，被获取求值时，执行get(有缓存，优先执行缓存)
+            //    会将返回值作为求值结果
+            get() {
+              return this.firstname + this.lastname
+            },
+            // (2)当fullname计算属性被修改赋值时，执行set
+            //     修改的值，传递给set方法的形参
+            set(value) {
+              this.firstname = value.slice(0, 1)
+              this.lastname = value.slice(1)
+            },
+          },
+        },
+        methods: {
+          changeName() {
+            this.fullname = '吕小布'
+          },
+        },
+      })
+    </script>
+  </body>
+</html>
