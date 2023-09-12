@@ -460,25 +460,162 @@ watch:{
 
 ##### 4.1 渲染
 
+```html
+<div class="tbody">
+    <div v-for="(item,index) in fruitList" :key="item.id" class="tr" :class="{active:item.isChecked}">
+        <div class="td"><input type="checkbox" :checked="item.isChecked" v-model="item.isChecked" /></div>
+        <div class="td"><img :src="item.icon" alt="" /></div>
+        <div class="td">{{item.price}}</div>
+        <div class="td">
+            <div class="my-input-number">
+                <button :disabled="item.num <= 1" class="decrease" @click="sub(item.id)">-</button>
+                <span class="my-input__inner">{{item.num}}</span>
+                <button class="increase" @click="add(item.id)">+</button>
+            </div>
+        </div>
+        <div class="td">{{item.num * item.price}}</div>
+        <div class="td"><button @click="del(item.id)">删除</button></div>
+    </div>
+</div>
+```
+
 
 
 ##### 4.2 删除
+
+在删除标签中，通过传递id来删除指定元素：
+
+```js
+del(id) {
+    this.fruitList = this.fruitList.filter((item) => item.id !== id)
+}
+```
+
+
 
 
 
 ##### 4.3 修改数量
 
+根据id，修改购物车中水果数量：
+
+```js
+add(id) {
+    // 1.根据id找到数组中的对应项 => find
+    const fruit = this.fruitList.find((item) => item.id === id)
+    // 2.操作num数量
+    fruit.num++
+},
+sub(id) {
+    // 1.根据id找到数组中的对应项 => find
+    const fruit = this.fruitList.find((item) => item.id === id)
+    // 2.操作num数量
+    fruit.num--
+},
+```
+
+
+
 
 
 ##### 4.4 全选和反选
+
+全选和反选，在这里我们通过计算属性来实现该功能：
+
+```html
+<!-- 底部 -->
+<div class="bottom">
+    <!-- 全选 -->
+    <label class="check-all">
+        <input type="checkbox" v-model="isAll" />
+        全选
+    </label>
+    <div class="right-box">
+        <!-- 所有商品总价 -->
+        <span class="price-box">总价&nbsp;&nbsp;:&nbsp;&nbsp;¥&nbsp;<span class="price">{{totalPrice}}</span></span>
+        <!-- 结算按钮 -->
+        <button class="pay">结算( 6 )</button>
+    </div>
+</div>
+```
+
+```html
+<div class="tbody">
+    <div v-for="(item,index) in fruitList" :key="item.id" class="tr" :class="{active:item.isChecked}">
+        <div class="td"><input type="checkbox" :checked="item.isChecked" v-model="item.isChecked" /></div>
+        <div class="td"><img :src="item.icon" alt="" /></div>
+        <div class="td">{{item.price}}</div>
+        <div class="td">
+            <div class="my-input-number">
+                <button :disabled="item.num <= 1" class="decrease" @click="sub(item.id)">-</button>
+                <span class="my-input__inner">{{item.num}}</span>
+                <button class="increase" @click="add(item.id)">+</button>
+            </div>
+        </div>
+        <div class="td">{{item.num * item.price}}</div>
+        <div class="td"><button @click="del(item.id)">删除</button></div>
+    </div>
+</div>
+```
+
+
+
+```js
+computed:{
+    isAll: {
+        get() {
+            // 必须所有的小选框都选中 => 全选框才选中
+            return this.fruitList.every((item) => item.isChecked)
+        },
+        set(value) {
+            // 基于拿到的布尔值，要让所有的小选框 同步状态
+            this.fruitList.forEach((item) => (item.isChecked = value))
+        },
+    }
+}
+```
+
+
 
 
 
 ##### 4.5 统计总价
 
+因为总价会随着水果数量及小计发生变化，所以我们要使用计算属性：
+
+```js
+// 统计选中的总价 num * price
+totalPrice() {
+    return this.fruitList.reduce((sum, item) => {
+        if (item.isChecked) {
+            // 选中 => 累加每一项的小计
+            return sum + item.price * item.num
+        } else {
+            // 没选中 => 不累加 返回原来的值(sum)
+            return sum
+        }
+    }, 0)
+},
+```
+
 
 
 ##### 4.6 持久化
+
+将数据保存在本地，通过watch深度侦听fruitList，一旦数据发生变化，就将变化后的数据添加到本地存储中：
+
+```html
+ watch: {
+    fruitList: {
+        deep: true,
+        handler(newValue) {
+        // 持久化处理
+        // 需要将变化后的 newValue 存入本地 (转JSON)
+        localStorage.setItem('list', JSON.stringify(newValue))
+        },
+    },
+},
+```
 
 
 
