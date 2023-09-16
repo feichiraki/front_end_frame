@@ -35,6 +35,11 @@ export default {
       this.$nextTick(() => {
         this.$refs.inp.focus();
       });
+
+      // setTimeout也可以实现该功能，但是时间没有$nextTick精准
+      // setTimeout(() => {
+      //   this.$refs.inp.focus();
+      // }, 1000);
     },
   },
 };
