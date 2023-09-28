@@ -1,0 +1,10 @@
+.father {
+  width: 100%;
+  background-color: orange;
+}
+
+.son {
+  height: 50px;
+  margin-top: 20px;
+  background-color: skyblue;
+}

@@ -1,0 +1,23 @@
+.app {
+  height: 100px;
+  padding: 10px;
+  background-color: #c4d0dc;
+}
+
+.node {
+  height: 80px;
+  padding: 10px;
+  background-color: yellowgreen;
+}
+
+.subnode {
+  height: 60px;
+  padding: 10px;
+  background-color: #dcdc39;
+}
+
+.child {
+  height: 40px;
+  padding: 10px;
+  background-color: skyblue;
+}
