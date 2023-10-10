@@ -529,7 +529,7 @@ App.defaultProps = {
 
 ##### 7.2 render props 模式
 
-###### 思路分析:
+###### 思路分析
 
 思路：将要复用的state和操作state的方法封装到一个组件中。
 
