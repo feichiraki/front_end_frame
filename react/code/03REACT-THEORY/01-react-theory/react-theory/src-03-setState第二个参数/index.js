@@ -17,6 +17,7 @@ class App extends React.Component {
           count: state.count + 1,
         }
       },
+      // state状态更新完毕后的操作
       () => {
         console.log('状态更新完成：', this.state.count)
         console.log(document.querySelector('#title').innerHTML)

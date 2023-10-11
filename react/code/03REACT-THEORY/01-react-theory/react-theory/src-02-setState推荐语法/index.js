@@ -23,6 +23,7 @@ class App extends React.Component {
     // 推荐语法
     // 注意：这种语法也是异步更新state的！
     this.setState((state, props) => {
+      console.log(this.state === state)
       return {
         count: state.count + 1,
       }

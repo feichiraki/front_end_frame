@@ -4,6 +4,7 @@ const ReactDOM = require('react-dom')
 
 /**
  * JSX语法转化过程
+ *
  */
 
 // 这里我们使用 react16 的渲染方式

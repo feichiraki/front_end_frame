@@ -203,7 +203,7 @@ class Hello extends React.PureComponent{
 
 
 
-###### 4.3.2 纯组件—shallow compare
+###### 4.3.2 纯组件—实现原理
 
 说明：纯组件内部的对比是`shallow compare`（浅层对比）。
 
