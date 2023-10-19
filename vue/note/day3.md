@@ -227,6 +227,30 @@ Vue CLI 是 Vue官方提供的一个`全局命令工具`。
 
    > 这里选项就感觉很好，给我们提供了三个选项。可以根据自己所有的环境进行选择。
 
+   **注意：如果在后续你想使用其他包管理器下载依赖，可以按如下步骤进行修改**：
+
+   * 进入`C:\Users\用户名`目录下面
+
+   * 找到`.vuerc`文件，然后打开它
+
+     ```json
+     {
+       "useTaobaoRegistry": true,
+       "packageManager": "yarn"
+     }
+     ```
+
+   * 修改其中的`packageManager`选项的值为你需要更换的包管理器名即可。
+
+   * 例如，我要使用npm包管理器：
+
+     ```json
+     {
+       "useTaobaoRegistry": true,
+       "packageManager": "npm"
+     }
+     ```
+
    
 
 4. 启动项目
