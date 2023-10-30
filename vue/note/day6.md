@@ -1013,7 +1013,7 @@ deactivated() {
 
 10. 项目创建成功后的目录如下：
 
-    
+    <img src="day6.assets/image-20231030165907688.png" alt="image-20231030165907688" style="zoom:67%;" />
 
 
 
