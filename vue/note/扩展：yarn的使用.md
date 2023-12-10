@@ -10,6 +10,8 @@
 
 ```bash
 corepack enable 
+# 如果不需要就关闭即可
+corepack disable
 ```
 
 默认情况下，Corepack 包含在所有 Node.js 安装中，但目前是选择加入的。若要启用它，请运行以下命令：
@@ -21,6 +23,12 @@ npm i -g corepack
 通过该种方式，你可以启用`yarn`和`pnpm`两种包管理器。
 
 > 具体请看Node官网文档的介绍：https://nodejs.cn/api-v18/corepack.html。
+
+更新包管理器
+
+```bash
+corepack prepare pnpm@8.10.5 --activate	# 更新pnpm
+```
 
 
 
