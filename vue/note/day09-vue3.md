@@ -97,6 +97,7 @@ node -v
 
 ```bash
 npm init vue@latest
+npm create vite@latest
 ```
 
 这一指令将会安装并执行 `create-vue`。
@@ -459,6 +460,7 @@ vue3使用的插件为`Volar`：
 <script setup>
 	// 1. 导入watch
     import {ref,watch} from 'vue'
+    const count = ref(0)
     // 2. 调用watch 侦听变化
     watch(count,(newValue,oldValue)=>{
         console.log(`count发生了变化，旧值为${oldValue},新值为${newValue}`)
