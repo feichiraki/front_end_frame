@@ -587,6 +587,17 @@ npm i json-server -D
 
 ##### 2.2 发送请求获取数据&数据渲染
 
+```jsx
+useEffect(()=>{
+    // 发送请求，获取评论数据
+    async function getCommentList(){
+        const res = await axios.get('http://localhost:3005/list')
+        setCommentList(res.data)
+    }
+    getCommentList()
+},[])
+```
+
 
 
 
