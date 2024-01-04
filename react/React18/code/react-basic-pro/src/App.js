@@ -1,8 +1,10 @@
 import './App.scss'
 import avatar from './images/bozai.png'
-import { useState } from 'react'
+import { useState,useRef } from 'react'
 import _ from 'lodash'
 import classNames from 'classnames'
+import { v4 as uuidv4} from 'uuid'
+import dayjs from 'dayjs'
 
 /**
  * 评论列表的渲染和操作
@@ -95,6 +97,27 @@ const App = () => {
       setCommentList(_.orderBy(commentList, 'ctime', 'desc'))
     }
   }
+
+  // 发布评论
+  const [comment,setComment] = useState('')
+  const inputRef = useRef(null)
+  const publishCm = ()=> {
+    // 添加评论数据
+    setCommentList([
+      ...commentList,
+      {
+        rpid: uuidv4(),
+        user: user,
+        content: comment,
+        ctime: dayjs().format('MM-DD HH:mm') ,
+        like: 0,
+      }
+    ])
+    // 清空内容
+    setComment('')
+    // 聚焦
+    inputRef.current.focus()
+  }
   return (
     <div className="app">
       {/* 导航 Tab */}
@@ -132,11 +155,14 @@ const App = () => {
           <div className="reply-box-wrap">
             {/* 评论框 */}
             <textarea
+              ref={inputRef}
+              value={comment}
+              onChange={e => setComment(e.target.value)}
               className="reply-box-textarea"
               placeholder="发一条友善的评论"
             />
             {/* 发布按钮 */}
-            <div className="reply-box-send">
+            <div className="reply-box-send" onClick={publishCm}>
               <div className="send-text">发布</div>
             </div>
           </div>

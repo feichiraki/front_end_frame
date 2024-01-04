@@ -506,7 +506,45 @@ function App (){
 
 ```jsx
 // 评论列表数据
-const list = []
+const list =[
+    {
+        // 评论id
+        rpid: 3,
+        // 用户信息
+        user: {
+            uid: '13258165',
+            avatar: "http://toutiao.itheima.net/resources/images/98.jpg",
+            uname: '周杰伦',
+        },
+        // 评论内容
+        content: '哎哟，不错哦',
+        // 评论时间
+        ctime: '10-18 08:15',
+        like: 88,
+    },
+    {
+        rpid: 2,
+        user: {
+            uid: '36080105',
+            avatar: "http://toutiao.itheima.net/resources/images/98.jpg",
+            uname: '许嵩',
+        },
+        content: '我寻你千百度 日出到迟暮',
+        ctime: '11-13 11:29',
+        like: 88,
+    },
+    {
+        rpid: 1,
+        user: {
+            uid: '30009257',
+            avatar,
+            uname: '薛之谦',
+        },
+        content: '丑八怪~~~~~，在这爱美的时代！',
+        ctime: '10-19 09:00',
+        like: 66,
+    },
+]
 // 当前登录用户信息
 const user = {
     // 用户id
@@ -548,7 +586,10 @@ const App = ()=>{
 > 过滤出来的新的对象覆盖旧对象。
 
 ```jsx
-
+const [commentList, setCommentList] = useState(defaultList)
+const handleDel = (id) => {
+    setCommentList(commentList.filter(item => item.rpid !== id))
+}
 ```
 
 
@@ -580,6 +621,20 @@ const App = ()=>{
 把`评论列表状态数据进行不同的排序处理`，当成新值传给set函数重新渲染视图UI。
 
 > 这里推荐使用第三方库`lodash`中的`orderBy`函数。
+
+```jsx
+const handleTabsChange = (type) => {
+    setType(type)
+    // 排序实现
+    if (type === 'hot') {
+        // 根据点赞数排序
+        setCommentList(_.orderBy(commentList, 'like', 'desc'))
+    } else {
+        // 根据时间排序
+        setCommentList(_.orderBy(commentList, 'ctime', 'desc'))
+    }
+}
+```
 
 
 
