@@ -382,6 +382,120 @@ npm run start
 
 <img src="Reduxrumen.assets/image-20240105221355413.png" alt="image-20240105221355413" style="zoom:67%;" />
 
+###### 实现mock服务
+
+为什么要实现mock服务？
+
+> mock可以提供我们所需数据的接口，可以提高我们开发前端项目的效率。
+
+```bash
+npm run serve
+```
+
+###### 编写store
+
+`takeaway.js`：设置状态数据state及操作state的方法
+
+```js
+import {createSlice} from '@reduxjs/toolkit'
+import axios from 'axios'
+
+const takeAwayStore = createSlice({
+    name:'takeaway',
+    initialState:{
+        // 餐品列表
+        foodsList:[]
+    },
+    reducers:{
+        // 获取foodsList
+        setFoodsList(state,action){
+            state.foodsList = action.playlod
+        }
+    }
+})
+// 导出并解构
+export const {setFoodsList} = takeAwayStore.actions
+// 异步操作
+const fetchFoodsList = ()=>{
+	return async(dispatch)=>{
+        // axios获取数据
+		const res = await axios.get('http://localhost:3004/takeaway')
+        // 调用dispatch函数提交action
+        dispatch(setFoodsList(res.data))
+    }
+}
+
+export {fetchFoodsList}
+export default takeAwayStore.reducer
+```
+
+`store/index.js`：将已经创建好的takeaway模块导入配置reducer，并再次导出。
+
+```js
+import {configureStore} from '@reduxjs/toolkit'
+import takeaway from './modules/takeaway'
+
+const store = configureStore({
+    reducer:{
+        takeaway
+    }
+})
+
+// 导出store模块
+export default store
+// 将takeaway模块中的所有导出暴露=>以后直接从index.js中访问即可，而无需引入modules/takeaway.js
+export * from './modules/takeaway'
+```
+
+`src/index.js`：注入已经配置好的状态管理。
+
+```jsx
+// 注入store
+import { Provider } from 'react-redux'
+import store from './store'
+
+const root = createRoot(document.getElementById('root'))
+root.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+)
+```
+
+###### 组件触发action并渲染数据
+
+`App.js`
+
+```js
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchGoodsList } from './store'
+
+const App = ()=>{
+    const dispatch = useDispatch()
+    // 初始化数据
+    useEffect(() => {
+        dispatch(fetchGoodsList())
+    }, [dispatch])
+    // 通过useSelecor获取到注入的store数据
+    const {foodsList}  = useSelector(state=>state.takeaway)
+	...
+    {/* 外卖商品列表 */}
+    {takeAwayList.map(item => {
+        return (
+            <FoodsCategory
+            key={item.tag}
+			// 列表标题
+            name={item.name}
+            // 列表商品
+            foods={item.foods}
+            />)
+        })
+    }
+    ...
+}
+```
+
 
 
 
@@ -398,6 +512,67 @@ npm run start
 
 <img src="Reduxrumen.assets/image-20240105221501120.png" alt="image-20240105221501120" style="zoom:67%;" />
 
+###### RTK编写activeIndex方法
+
+`takeaway.js`
+
+```js
+initialState:{
+    ...
+    activeIndex:0
+},
+reducers:{
+    ...
+    changeActiveIndex(state, action) {
+        state.activeIndex = action.payload
+    },
+}
+
+// 导出
+export const { setGoodsList, changeActiveIndex}  = takeAwayStore.actions
+```
+
+###### 激活动态类名显示&activeIndex更改
+
+`components/Menu/index.js`
+
+```jsx
+import {useDispatch, useSelector} from 'react-redux'
+import { changeActiveIndex } from '../../store'
+
+const Menu = ()=>{
+    // 获取选中状态
+    const {foodsList,activeIndex} = useSelector(state=>state.takeaway)
+    const dispatch = useDispatch()
+    
+    // 从foodsList中分离出menus
+    const menus = foodsList.map(item=>({tag:item.tag,name:item.name}))
+    return (
+        <nav className="list-menu">
+            {/* 添加active类名会变成激活状态 */}
+            {menus.map((item, index) => {
+                return (
+                    <div
+                        key={item.tag}
+                        className={classNames(
+                            'list-menu-item',
+                            { active: activeIndex === index}
+                        )}
+                        onClick={() => dispatch(changeActiveIndex(index))}
+                        >
+                        {item.name}
+                    </div>
+                )
+            })}
+        </nav>
+    )
+}
+
+
+
+```
+
+
 
 
 
@@ -407,6 +582,35 @@ npm run start
 ##### 5.1 需求理解
 
 <img src="Reduxrumen.assets/image-20240105223643295.png" alt="image-20240105223643295" style="zoom:67%;" />
+
+
+
+##### 5.2 实现步骤
+
+1. 根据条件控制对应项显示=>`activeIndex === index?`
+2. 当条件结果为true，我们就进行视图渲染
+
+`App.js`
+
+```jsx
+const { takeAwayList,activeIndex } = useSelector(state => state.takeaway)
+
+<div className="goods-list">
+    {/* 外卖商品列表 */}
+    {takeAwayList.map((item,index) => {
+            return (
+            activeIndex === index &&
+            <FoodsCategory
+                key={item.tag}
+                // 列表标题
+                name={item.name}
+                // 列表商品
+                foods={item.foods}
+			/>
+        )
+	})}
+</div>
+```
 
 
 
@@ -424,6 +628,54 @@ npm run start
 
 <img src="Reduxrumen.assets/image-20240105223851453.png" alt="image-20240105223851453" style="zoom:67%;" />
 
+###### RTK新增状态cartList
+
+`takeaway.js`
+
+```js
+initialState:{
+    ...
+    cartList:[]
+},
+reducers:{
+    ...,
+    const addCart(state,action){
+        // 如果已存在，则count+1
+        const item = state.cartList.find(item=>item.id === action.playload.id)
+        if(item){
+            count++
+        }else{
+            state.cartList.push({...action.playload,count:1})
+        }
+    }
+}
+
+// 将该方法导出
+export const { setGoodsList, changeActiveIndex, addCart}  = takeAwayStore.actions
+```
+
+###### 组件点击添加至购物车
+
+`FoodItem/index.js`
+
+```jsx
+const dispatch = useDispatch()
+
+span className="plus" onClick={() => dispatch(addCart({
+    id,
+    picture,
+    name,
+    unit,
+    description,
+    food_tag_list,
+    month_saled,
+    like_ratio_desc,
+    price,
+    tag,
+    count
+}))}></span>
+```
+
 
 
 
@@ -439,6 +691,56 @@ npm run start
 ##### 7.2 实现步骤
 
 <img src="Reduxrumen.assets/image-20240105230356297.png" alt="image-20240105230356297" style="zoom:67%;" />
+
+###### 渲染数量
+
+`Cart/index.js`
+
+```jsx
+<!-- 数量 -->
+<div onClick={onShow} className={classNames('icon')}>
+    {cart.length>0 && <div className="cartCornerMark">{cart.length}</div>}
+</div>
+```
+
+###### 计算总价格
+
+```jsx
+// 计算总价
+const totalPrice = cart.reduce((sum, item) => sum + item.price * item.count, 0)
+
+{/* 购物车价格 */}
+<div className="main">
+    <div className="price">
+        <span className="payableAmount">
+            <span className="payableAmountUnit">¥</span>
+            {totalPrice.toFixed(2)}
+        </span>
+    </div>
+    <span className="text">预估另需配送费 ¥5</span>
+</div>
+```
+
+###### 当购物车中有外卖餐品时进行高亮处理
+
+高亮效果：
+
+<img src="Redux入门.assets/image-20240107195908781.png" alt="image-20240107195908781" style="zoom:67%;" />
+
+```jsx
+<div onClick={onShow} className={classNames('icon', { fill: cart.length > 0 })}>
+    {cart.length>0 && <div className="cartCornerMark">{cart.length}</div>}
+</div>
+
+{/* 结算 or 起送 */}
+{cart.length>0 ? (
+    <div className="goToPreview">去结算</div>
+) : (
+    <div className="minFee">¥20起送</div>
+)}
+```
+
+
 
 
 
@@ -456,6 +758,75 @@ npm run start
 
 <img src="Reduxrumen.assets/image-20240106143430439.png" alt="image-20240106143430439" style="zoom:67%;" />
 
+###### 购物车中渲染数据
+
+`Cart/index.js`
+
+```jsx
+const { cartList: cart } = useSelector(state => state.takeaway)
+
+
+<div className="scrollArea">
+    {cart.map(item => {
+        return (
+            <div className="cartItem" key={item.id}>
+                <img className="shopPic" src={item.picture} alt="" />
+                <div className="main">
+                    <div className="skuInfo">
+                        <div className="name">{item.name}</div>
+                    </div>
+                    <div className="payableAmount">
+                        <span className="yuan">¥</span>
+                        <span className="price">{item.price}</span>
+                    </div>
+                </div>
+                <div className="skuBtnWrapper btnGroup">
+                    <Count
+                        count={item.count}
+                        onPlus={() => dispatch(increCount({ id: item.id }))}
+                        onMinus={() => dispatch(decreCount({ id: item.id }))}
+                        />
+                </div>
+            </div>
+        )
+    })}
+</div>
+```
+
+###### RTK中增减函数
+
+`takeaway.js`
+
+```js
+increCount(state,action){
+    // 修改购物车中对应商品的数量 => id
+    const item = state.cartList.find(item => item.id === action.payload.id)
+    item.count++
+},
+decreCount(state,action){
+    // 修改购物车中对应商品的数量 => id
+    const item = state.cartList.find(item => item.id === action.payload.id)
+    if(item.count ===  0){
+        return
+    }
+    item.count--
+},
+    
+// 导出
+export const { setGoodsList, changeActiveIndex, addCart, increCount, decreCount }  = takeAwayStore.actions
+
+```
+
+###### 购物车组件中调用增减函数
+
+```jsx
+<Count
+    count={item.count}
+    onPlus={() => dispatch(increCount({ id: item.id }))}
+    onMinus={() => dispatch(decreCount({ id: item.id }))}
+    />
+```
+
 
 
 
@@ -471,6 +842,40 @@ npm run start
 ##### 9.2 实现步骤
 
 <img src="Reduxrumen.assets/image-20240106143533567.png" alt="image-20240106143533567" style="zoom:67%;" />
+
+###### useState控制显隐
+
+`Cart/index.js`
+
+```jsx
+  // 购物车显示和隐藏 (蒙层)
+const [visible, setVisible] = useState(false)
+const onShow = ()=>{
+    // 如果购物车列表中有数据，才可用显示
+    if(cart.length > 0)
+    {
+        setVisible(true)
+    }
+}
+
+
+{/* 遮罩层 添加visible类名可以显示出来=>点击遮罩区隐藏*/}
+<div
+    className={classNames('cartOverlay', visible && 'visible')}
+    onClick={() => setVisible(false)}
+    />
+
+{/* fill 添加fill类名可以切换购物车状态*/}
+<div onClick={onShow} className={classNames('icon', { fill: cart.length > 0 })}>
+    {cart.length>0 && <div className="cartCornerMark">{cart.length}</div>}
+</div>
+
+<div className={classNames('cartPanel', visible && 'visible')}>
+	...
+</div>
+```
+
+
 
 
 
