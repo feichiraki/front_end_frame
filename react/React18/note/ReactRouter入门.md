@@ -2049,65 +2049,72 @@ import { useDispatch } from 'react-redux'
 
 const New = () => {
     const navigate = useNavigate()
-    // 1.切换支出和收入
-    ...
-    
-    // 2.新增账单
-    // 2.1 准备需要提交的数据model
-    const [bill, setBill] = useState({
-        type: Billtype,
-        money: 0,
-        date: '',
-        useFor: '',
-    })
+    const dispatch = useDispatch()
 
-    // 2.2 修改账单提交时间
+    // 状态
+    const [Billtype, setType] = useState('pay')
     // 时间选择器显示状态
     const [visible, setVisible] = useState(false)
-    // 选中的时间
+    // 选中的时间-key
     const [nowDate, setDate] = useState(dayjs().format('YYYY-MM-DD'))
-    const handleChangeDate = (date) => {
-        setDate(dayjs(date).format('YYYY-MM-DD'))
-        // if (dayjs().format('YYYY-MM-DD') === nowDate){
-        //     setBill({ ...bill, date: new Date().toISOString() })
-        // }else{
-        //     setBill({ ...bill, date: date.toISOString() })
-        // }
-        setBill({ ...bill, date: date.toISOString() })
+    // 选中时间-detail
+    const [date, setDetailDate] = useState('')
+    // 文本框设置的money
+    const [money, setMoney] = useState(0)
+    // 收入/支出源
+    const [useFor, setUseFor] = useState('')
+
+
+    // 1.切换支出和收入
+    const toogleType = (type) => {
+        setType(type)
+        // 注意，如果输入框中有值，我们需要将其进行取反操作
+        // 因为修改state是异步操作，我们只能以传递过来的值进行判断
+        if (type === 'pay') {
+            if (money > 0) setMoney(-money)
+        } else {
+            // 反之，进行取反
+            if (money < 0) setMoney(-money)
+        }
     }
 
-    // 2.3 设定支出/收入money
+    // 2.新增账单
+    // 2.1 修改账单提交时间
+    const handleChangeDate = (date) => {
+        const formatDate = dayjs(date).format('YYYY-MM-DD')
+        // 当日期相同时，不做操作
+        if (formatDate === nowDate) return
+        // 日期不同时，设置时间
+        setDate(formatDate)
+        setDetailDate(date)
+    }
+
+    // 2.2 设定支出/收入money
     const getMoney = (e) => {
         if (Billtype === 'pay') {
-            setBill({ ...bill, money: -e.target.value})
+            setMoney(-e.target.value)
         } else {
-            setBill({ ...bill, money: +e.target.value})
+            setMoney(+e.target.value)
         }
     }
 
-    // 2.4 选择支出/消费来源 useFor
-    const [useFor, setUseFor] = useState('')
-    const handleUserFor = (e) => {
-        // 阻止冒泡
-        // e.stopPropagation()
-        // console.log(e.target)
-
-        // 第二种方式：
-        // console.log(e.currentTarget.dataset)
-        const { type } = e.currentTarget.dataset
+    // 2.3 选择支出/消费来源 useFor
+    const handleUserFor = (type) => {
         setUseFor(type)
-        setBill({...bill,useFor:type})
     }
 
-    // 2.5 新增账单
-    const dispatch = useDispatch()
+    // 2.4 新增账单
     const addBill = () => {
-        if(!bill.date){
-            bill.date = new Date().toISOString()
+        const data = {
+            type: Billtype,
+            money,
+            date: date || new Date(),
+            useFor
         }
-        // 新增账单
-        dispatch(insertBill(bill))
+        // console.log(data)
+        dispatch(insertBill(data))
     }
+
     return (
         <div className="keepAccounts">
             {/* 页面介绍 */}
@@ -2164,6 +2171,7 @@ const New = () => {
                 </div>
             </div>
 
+
             <div className="kaTypeList">
                 {billListData[Billtype].map(item => {
                     return (
@@ -2175,11 +2183,10 @@ const New = () => {
                                         <div
                                             className={classNames(
                                                 'item',
-                                                { 'selected': useFor === item.type}
+                                                { 'selected': useFor === item.type }
                                             )}
                                             key={item.type}
-                                            data-type={item.type}
-                                            onClick={handleUserFor}
+                                            onClick={() => handleUserFor(item.type)}
                                             >
                                             <div className="icon">
                                                 <Icon type={item.type} />

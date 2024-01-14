@@ -97,6 +97,13 @@
       "money": 1000,
       "date": "2024-01-14T16:29:24.669Z",
       "useFor": "financial"
+    },
+    {
+      "id": "fe71",
+      "type": "pay",
+      "money": -100,
+      "date": "2024-01-14T16:00:00.000Z",
+      "useFor": "home"
     }
   ]
 }
