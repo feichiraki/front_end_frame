@@ -92,6 +92,61 @@ root.render(<App />)
 
 
 
+#### 3、yarn搭建react开发环境
+
+1. 安装yarn包管理器
+
+```bash
+# 通过npm安装yarn
+npm i yarn -g
+# 或者启用 corepack
+corepack enable
+```
+
+> corepack启用后，就会全局模块中就会多出yarn和pnpm包管理器的文件了。
+
+2. 通过yarn安装react项目
+
+```bash
+yarn create react-app my-app
+```
+
+3. 如果想安装支持typescript的react项目
+
+```bash
+yarn create react-app my-app --template typescript
+```
+
+
+
+
+
+#### 4、pnpm搭建react开发环境
+
+1. 安装pnpm包管理器
+
+```bash
+npm i pnpm -g
+```
+
+2. 创建一个新的react项目
+
+```bash
+pnpm create react-app my-app
+```
+
+3. 如果想安装支持typescript的react项目
+
+```bash
+pnpm create react-app my-app --template typescript
+```
+
+
+
+
+
+
+
 ### JSX基础
 
 #### 1、什么是JSX
