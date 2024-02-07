@@ -324,6 +324,122 @@ class Counter extends Component {
 2. 子传父：通过prop绑定父组件中的函数，子组件调用。
 3. 兄弟通信：状态提升，通过父组件做桥接。
 
+##### 3.1 父传子
+
+```jsx
+import { Component } from 'react'
+
+// 子组件
+class Son extends Component {
+    render() {
+        return <div>
+            我是子组件
+            {/* 使用父传子数据 */}
+            {this.props.msg}
+        </div>
+    }
+}
+
+// 父组件 
+class Parent extends Component{
+    state = {
+        msg:'this is parent msg.'
+    }
+    render(){
+        return <div className='parent'>
+            我是父组件
+            <Son msg={this.state.msg}/>
+        </div>
+    }
+}
+
+export default Parent
+```
+
+
+
+##### 3.2 子传父
+
+```jsx
+// 子组件
+class Son extends Component {
+    render() {
+        return <div>
+            我是子组件
+            <button onClick={()=>this.props.onGetSonMsg('this is son msg.')}>sendMsgToParent</button>
+        </div>
+    }
+}
+
+// 父组件 
+class Parent extends Component{
+    // 定义函数 => 获取子组件传递数据
+    getSonMsg(sonMsg){
+        console.log(sonMsg)
+    }
+
+    render(){
+        return <div className='parent'>
+            我是父组件
+            <Son onGetSonMsg={this.getSonMsg}/>
+        </div>
+    }
+}
+
+
+export default Parent
+```
+
+
+
+##### 3.3 兄弟通信
+
+```jsx
+class Son extends Component {
+
+    render() {
+        return <div>
+            我是子组件Son
+            {/* 组件Son2传递的数据 */}
+            Son2传递的数据---{this.props.share}
+        </div>
+    }
+}
+
+class Son2 extends Component {
+    state = {
+        msg: 'hello my brother!'
+    }
+    render() {
+        return <div className='Son2'>
+            我是子组件Son2
+            <button onClick={() => this.props.onSendData(this.state.msg)}>sendDataToSon</button>
+        </div>
+    }
+}
+
+// 父组件 
+class Parent extends Component {
+    state = {
+        shareData: ''
+    }
+    setShareData = (data)=>{
+        this.setState({
+            shareData:data
+        })
+    }
+    render() {
+        return <div className='parent'>
+            我是父组件
+            子组件Son：<Son share={this.state.shareData} />
+            子组件Son2：<Son2 onSendData={this.setShareData} />
+        </div>
+    }
+}
+
+export default Parent
+```
+
 
 
 
