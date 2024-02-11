@@ -448,8 +448,255 @@ export default Parent
 
 ### zustand—极简的状态管理工具
 
+> [Zustand Documentation](https://docs.pmnd.rs/zustand/getting-started/introduction)
+
 #### 1、快速上手
 
 <img src="React-拓展.assets/image-20240206005306765.png" alt="image-20240206005306765" style="zoom:67%;" />
 
-> 注意：在使用zustand时，和redux进行对比学习，并复习redux内容 => 效率更佳。、
+> 注意：在使用zustand时，和redux进行对比学习，并复习redux内容 => 效率更佳。
+
+```jsx
+// zustand
+import { create } from 'zustand'
+
+// 1.创建store
+const useStore = create((set) => {
+  return {
+    // 状态数据
+    count: 0,
+    //  修改状态的方法
+    inc: () => {
+      set((state) => ({ count: state.count + 1 }))
+    }
+  }
+})
+
+// 2.绑定到组件
+function App() {
+  const { count, inc } = useStore()
+  return (
+    <div className="App">
+      <button onClick={inc}>{count}</button>
+    </div>
+  );
+}
+
+export default App;
+```
+
+
+
+
+
+#### 2、异步基础
+
+对于异步的支持不需要特殊的操作，直接在函数中编写异步逻辑，最后只需要`调用set方法传入新状态`即可。
+
+```jsx
+const URL = 'http://geek.itheima.net/v1_0/channels'
+
+const useStore = create((set) => {
+	return {
+        // 状态数据
+        channelList:[],
+        // 异步方法
+        fetchChannelList:async () => { 
+            const res = await fetch(URL)
+            const jsonData = await res.json()
+            // 调用set犯法更新状态
+            set({
+                channelList:jsonData.data.channels
+            })
+        }
+    }
+})
+```
+
+
+
+
+
+#### 3、切片模式
+
+场景：当单个store比较大的时候，可以采用 切片模式 进行模块拆分组合，类似于模块化。
+
+<img src="React-拓展.assets/image-20240211215004931.png" alt="image-20240211215004931" style="zoom:67%;" />
+
+```jsx
+import { create } from 'zustand'
+
+// 创建counter相关切片
+const createCounterStore = (set) => {
+  return {
+    count: 0,
+    setCount: () => {
+      set(state => ({ count: state.count + 1 }))
+    }
+  }
+}
+
+// 创建channel相关切片
+const createChannelStore = (set) => {
+  return {
+    channelList: [],
+    fetchGetList: async () => {
+      const res = await fetch(URL)
+      const jsonData = await res.json()
+      set({ channelList: jsonData.data.channels })
+    }
+  }
+}
+
+// 组合切片
+const useStore = create((...a) => ({
+  ...createCounterStore(...a),
+  ...createChannelStore(...a)
+}))
+```
+
+
+
+
+
+#### 4、对接DevTools工具
+
+简单的调试我们可以安装一个 名称为 `simple-zustand-devtools` 的调试工具。
+
+##### 4.1 安装调试包
+
+```bash
+npm i simple-zustand-devtools -D
+```
+
+
+
+##### 4.2 配置调试工具-simple-zustand-devtools
+
+```js
+import create from 'zustand';
+import { mountStoreDevtool } from 'simple-zustand-devtools';
+
+export const useStore = create(set => {
+  // create your zustand store here
+});
+
+if (process.env.NODE_ENV === 'development') {
+  mountStoreDevtool('Store', useStore);
+}
+```
+
+
+
+##### 4.3 zustand/middleware进行配置
+
+###### 将所有分离的切片在index.js中一起整合配置
+
+```js
+import create from 'zustand';
+import { devtools } from 'zustand/middleware'
+
+const useStore = create(
+    devtools((...a) => {
+        return {
+            ...channelStore(...a),
+            ...couterStore(...a)
+        }
+    },
+        {
+            name: 'store',
+            enabled: true
+        }
+    )
+)
+```
+
+上面这种是将所有切片模块在页面上显示出来。
+
+<img src="React-拓展.assets/image-20240211232543401.png" alt="image-20240211232543401" style="zoom:67%;" />
+
+###### 将每个单独切片加入Redux调试器中
+
+如果想要将所有的模块在Redux调试器中独立显示出来可以用devtools中间件对每个切片进行配置。
+
+```js
+// channelStore切片
+const createChannelStore = devtools((set) => {
+    return {
+        channelList: [],
+        getChannelList: async () => {
+            const res = await fetch(URL)
+            const jsonData = await res.json()
+            set({ channelList: jsonData.data.channels })
+        }
+    }
+},{
+    name:'channelStore',
+    enabled:true
+})
+
+// couterStore切片
+const createCounterStore = devtools((set) => {
+    return {
+        // 状态数据
+        count: 0,
+        //  修改状态的方法
+        inc: () => {
+            set((state) => ({ count: state.count + 1 }))
+        },
+    }
+}, {
+    name: 'couterStore',
+    enabled: true
+})
+
+// store/index.js
+const useStore = create((...a)=>{
+    return {
+        ...channelStore(...a),
+        ...couterStore(...a)
+    }
+})
+```
+
+<img src="React-拓展.assets/image-20240211234026869.png" alt="image-20240211234026869" style="zoom:67%;" />
+
+###### 对zustand的Store配置记录动作
+
+DevTools 只会记录来自每个分离的存储的动作，而不是像典型的组合 reducer Redux 存储那样。可以通过以下方式记录每个 set 函数的特定动作类型：
+
+```js
+const createChannelStore = devtools((set) => {
+    return {
+        channelList: [],
+        getChannelList: async () => {
+            const res = await fetch(URL)
+            const jsonData = await res.json()
+            set({ channelList: jsonData.data.channels },false,{
+                // 设置动作类型
+                type:'channelStore/getChannelList'
+            })
+        }
+    }
+},{
+    name:'channelStore',
+    enabled:true
+})
+
+```
+
+<img src="React-拓展.assets/image-20240211234700141.png" alt="image-20240211234700141" style="zoom:67%;" />
+
+> 如果没有提供动作类型，则默认为 “anonymous”。
+
+
+
+如果没有提供动作类型，则默认为 “anonymous”。你可以通过提供 anonymousActionType 参数来自定义此默认值：
+
+```js
+devtools(..., { anonymousActionType: 'unknown', ... })
+```
+
+如果您希望禁用devtools(例如在生产环境中)。您可以通过提供enabled参数来自定义此设置:
+
+    devtools(..., { enabled: false, ... })
