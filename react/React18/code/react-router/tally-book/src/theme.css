@@ -1,0 +1,12 @@
+/* :root:root{
+    --adm-color-primary: #a062d4;
+}
+
+.adm-tab-bar-item-active{
+    color:rgb(39, 177, 131);
+}
+ */
+
+ :root:root {
+     --adm-color-primary: rgb(105, 174, 120);
+ }
