@@ -13,9 +13,7 @@ const hotMap = [
 ]
 
 // uniapp 获取页面参数
-const query = defineProps<{
-  type: string
-}>()
+const query = defineProps<{ type: string }>()
 
 // 得到当前推荐-类型项
 const currentHotMap = hotMap.find((v) => v.type === query.type)
@@ -105,7 +103,7 @@ const onScrolltolower = async () => {
           class="navigator"
           v-for="good in item.goodsItems.items"
           :key="good.id"
-          :url="`/pages/goods/goods?id=${good.id}`"
+          :url="`/pages/goods/index?id=${good.id}`"
         >
           <image class="thumb" :src="good.picture"></image>
           <view class="name ellipsis">{{ good.desc }}</view>
