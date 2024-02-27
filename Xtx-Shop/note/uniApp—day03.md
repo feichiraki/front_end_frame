@@ -1,3 +1,5 @@
+
+
 ## uni-app—小兔鲜微信小程序实战
 
 > uni-app官网：https://uniapp.dcloud.net.cn/
@@ -326,7 +328,7 @@ const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = (ev) => {
 // src/services/login.ts
 
 import type { LoginResult } from '@/types/member'
-import { http } from '@/utils/http'
+import { request } from '@/utils/request'
 
 type LoginParams = {
   code: string
@@ -450,7 +452,7 @@ const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (ev) => {
  * @param phoneNumber 模拟手机号码
  */
 export const postLoginWxMinSimpleAPI = (phoneNumber: string) => {
-  return http<LoginResult>({
+  return request<LoginResult>({
     method: 'POST',
     url: '/login/wxMin/simple',
     data: {
@@ -1384,7 +1386,7 @@ page {
 
 ```ts
 import type { ProfileDetail } from '@/types/member'
-import { http } from '@/utils/http'
+import { request } from '@/utils/request'
 
 /**
  * 获取个人信息
@@ -1611,6 +1613,201 @@ export const putMemberProfileAPI = (data: ProfileParams) => {
 ###### 接口调用
 
 ```ts
+// 获取屏幕边界到安全区域距离
+const { safeAreaInsets } = uni.getSystemInfoSync()
+import { onLoad } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+import { getMemberProfileAPI, putMemberProfileAPI } from '@/services/profile'
+import type { ProfileDetail, Gender } from '@/types/member'
+import { useMemberStore } from '@/stores'
 
+const memberStore = useMemberStore()
+
+// 获取个人资料
+const profile = ref<ProfileDetail>({} as ProfileDetail)
+const getMemberProfile = async () => {
+    const res = await getMemberProfileAPI()
+    profile.value = res.result
+}
+
+onLoad(() => {
+    // 处理页面加载时的逻辑
+    getMemberProfile()
+})
+
+// 上传图片
+const onAvatarChange = () => {
+    // 处理上传头像的逻辑
+    // 调用拍照/选择图片的API
+    uni.chooseMedia({
+        // 文件个数
+        count: 1,
+        // 文件类型
+        mediaType: ['image'],
+        // 选择文件后的回调函数
+        success: (res) => {
+            console.log(res)
+            // 本地路径
+            const { tempFilePath } = res.tempFiles[0]
+            // 文件上传
+            uni.uploadFile({
+                url: '/member/profile/avatar',
+                name: 'file',
+                filePath: tempFilePath,
+                success: (res) => {
+                    if (res.statusCode === 200) {
+                        const avatar = JSON.parse(res.data).result.avatar
+                        profile.value!.avatar = avatar
+                        memberStore.profile!.avatar = avatar
+                        uni.showToast({ icon: 'success', title: '头像上传成功' })
+                    } else {
+                        uni.showToast({ title: '头像上传失败', icon: 'error' })
+                    }
+                },
+            })
+        },
+    })
+}
+
+// 表单提交处理函数
+const onSubmit = async () => {
+    // 处理表单提交逻辑
+    const params = {
+        nickname: profile.value.nickname,
+        gender: profile.value.gender,
+        birthday: profile.value.birthday,
+        profession: profile.value.profession,
+        provinceCode: fullLocationCode.value[0],
+        cityCode: fullLocationCode.value[1],
+        countyCode: fullLocationCode.value[2],
+    }
+    const res = await putMemberProfileAPI(params)
+    // 更新store信息
+    memberStore.profile!.nickname = res.result.nickname
+    profile.value.birthday = res.result.birthday
+    profile.value.fullLocation = res.result.fullLocation
+    // 提示用户
+    uni.showToast({ title: '保存成功', icon: 'success' })
+    setTimeout(() => {
+        // 返回上一页
+        uni.navigateBack()
+    }, 400)
+}
+
+// 性别更新
+const onGenderChange: UniHelper.RadioGroupOnChange = (ev) => {
+    profile.value.gender = ev.detail.value as Gender
+}
+
+// 生日更新
+const onBirthdayChange: UniHelper.DatePickerOnChange = (ev) => {
+    // 获取用户选择的日期
+    profile.value.birthday = ev.detail.value
+}
+
+// 城市更新
+const fullLocationCode = ref(['', '', ''])
+const onRegionChange: UniHelper.RegionPickerOnChange = (ev) => {
+    // 获取用户选择的地区
+    profile.value.fullLocation = ev.detail.value.join(' ')
+    // 存储地区编号
+    fullLocationCode.value = ev.detail.code!
+}
 ```
 
+给表单元素绑定事件：
+
+```vue
+<view class="form">
+    <!-- 表单内容 -->
+    <view class="form-content">
+        <!-- 账号 -->
+        <view class="form-item">
+            <text class="label">账号</text>
+            <text class="account">{{ profile?.account }}</text>
+        </view>
+        <!-- 昵称 -->
+        <view class="form-item">
+            <text class="label">昵称</text>
+            <input class="input" type="text" placeholder="请填写昵称" v-model="profile!.nickname" />
+        </view>
+        <!-- 性别 -->
+        <view class="form-item">
+            <text class="label">性别</text>
+            <radio-group @change="onGenderChange">
+                <label class="radio">
+                    <radio value="男" color="#27ba9b" :checked="profile?.gender === '男'" />
+                    男
+                </label>
+                <label class="radio">
+                    <radio value="女" color="#27ba9b" :checked="profile?.gender === '女'" />
+                    女
+                </label>
+            </radio-group>
+        </view>
+        <!-- 生日 -->
+        <view class="form-item">
+            <text class="label">生日</text>
+            <picker
+                    @change="onBirthdayChange"
+                    class="picker"
+                    mode="date"
+                    start="1900-01-01"
+                    :end="new Date()"
+                    :value="profile?.birthday"
+                    >
+                <view v-if="profile?.birthday">{{ profile?.birthday }}</view>
+                <view class="placeholder" v-else>请选择日期</view>
+            </picker>
+        </view>
+        <!-- 城市 -->
+        <view class="form-item">
+            <text class="label">城市</text>
+            <picker
+                    class="picker"
+                    @change="onRegionChange"
+                    mode="region"
+                    :value="profile?.fullLocation?.split(' ')"
+                    >
+                <view v-if="profile?.fullLocation">{{ profile?.fullLocation }}</view>
+                <view class="placeholder" v-else>请选择城市</view>
+            </picker>
+        </view>
+        <!-- 职业 -->
+        <view class="form-item">
+            <text class="label">职业</text>
+            <input class="input" type="text" placeholder="请填写职业" v-model="profile!.profession" />
+        </view>
+    </view>
+    <!-- 提交按钮 -->
+    <button class="form-button" @tap="onSubmit">保 存</button>
+</view>
+```
+
+
+
+##### 5.6 个人信息页总结
+
+静态结构 
+
+* 分包 
+
+* 自定义导航 
+
+上传头像 
+
+* 拍照/选择图片
+
+* 上传文件 
+
+表单 
+
+* input 双向绑定 
+
+* radio 单选按钮
+
+* picker 选择器(日期/城市)
+
+* 头像昵称信息同步
+
+* pinia 状态管理
