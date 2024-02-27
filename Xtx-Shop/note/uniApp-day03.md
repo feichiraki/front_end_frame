@@ -605,7 +605,7 @@ const orderTypes = [
     <view class="profile" :style="{ paddingTop: safeAreaInsets!.top + 'px' }">
       <!-- 情况1：已登录 -->
       <view class="overview" v-if="false">
-        <navigator url="/pagesMember/profile/profile" hover-class="none">
+        <navigator url="/pagesMember/profile/index" hover-class="none">
           <image
             class="avatar"
             mode="aspectFill"
@@ -637,7 +637,7 @@ const orderTypes = [
           </view>
         </view>
       </view>
-      <navigator class="settings" url="/pagesMember/settings/settings" hover-class="none">
+      <navigator class="settings" url="/pagesMember/settings/index" hover-class="none">
         设置
       </navigator>
     </view>
@@ -847,5 +847,770 @@ page {
         </navigator>
     </view>
 </view>
+```
+
+
+
+
+
+#### 2、猜你喜欢分页加载
+
+实现步骤：
+
+<img src="uniApp-day03.assets/image-20240226125413500.png" alt="image-20240226125413500" style="zoom:67%;" />
+
+##### 2.1 获取组件实例
+
+```ts
+// 猜你喜欢
+const guessRef = ref<XtxGuessInstance>()
+```
+
+
+
+##### 2.2 触底事件&加载分页数据
+
+```ts
+// 下拉触底事件
+const onScrolltolower = () => {
+    guessRef.value?.getMore()
+}
+```
+
+
+
+##### 2.3 封装组合式函数
+
+> 文档：https://cn.vuejs.org/guide/reusability/composables.html
+
+```ts
+// src/composables/index.ts
+import { ref } from 'vue'
+import type { XtxGuessInstance } from '@/types/component'
+
+export function useGuessList() {
+  // 猜你喜欢
+  const guessRef = ref<XtxGuessInstance>()
+  // 下拉刷新列表
+  const onScrolltolower = () => {
+    guessRef.value?.getMore()
+  }
+  // 返回封装ref和事件处理函数
+  return {
+    guessRef,
+    onScrolltolower,
+  }
+}
+```
+
+
+
+
+
+#### 3、设置页分包和预下载
+
+<img src="uniApp-day03.assets/image-20240226133315360.png" alt="image-20240226133315360" style="zoom:67%;" />
+
+**小程序分包**：将小程序的代码分割成多个部分，分别打包成多个小程序包，`减少`小程序的`加载时间`，提高用户体验。 
+
+**分包预下载**：在进入小程序某个页面时，由框架自动预下载可能需要的分包，`提升`进入后续分包页面时的`启动速度`。
+
+实现步骤：
+
+<img src="uniApp-day03.assets/image-20240226132519060.png" alt="image-20240226132519060" style="zoom:67%;" />
+
+**温馨提示**
+
+> 通过 VS Code 插件 [uni-create-view](https://marketplace.visualstudio.com/items?itemName=mrmaoddxxaa.create-uniapp-view) 可以快速新建分包页面，自动配置分包路由。
+
+经验：分包一般是按照项目的业务模块划分，如会员模块分包，订单模块分包等。
+
+##### 3.1 会员设置页—新建分包
+
+```json
+// src/pages.json
+
+{
+  // ...省略
+  // 分包加载规则
+  "subPackages": [
+    {
+      // 子包的根目录
+      "root": "pagesMember",
+      // 页面路径和窗口表现
+      "pages": [
+        {
+          "path": "settings/settings",
+          "style": {
+            "navigationBarTitleText": "设置"
+          }
+        }
+      ]
+    }
+  ],
+}
+```
+
+
+
+##### 3.2 分包预下载
+
+```json
+// 分包预下载规则
+"preloadRule": {
+    "pages/my/my": {
+        "network": "all", 
+        "packages": ["pagesMember"] 
+    }
+}
+```
+
+
+
+##### 3.3 会员设置页—静态结构
+
+设置页：`src/pagesMember/settings/settings.vue`
+
+```vue
+<script setup lang="ts">
+//
+</script>
+
+<template>
+  <view class="viewport">
+    <!-- 列表1 -->
+    <view class="list" v-if="true">
+      <navigator url="/pagesMember/address/address" hover-class="none" class="item arrow">
+        我的收货地址
+      </navigator>
+    </view>
+    <!-- 列表2 -->
+    <view class="list">
+      <button hover-class="none" class="item arrow" open-type="openSetting">授权管理</button>
+      <button hover-class="none" class="item arrow" open-type="feedback">问题反馈</button>
+      <button hover-class="none" class="item arrow" open-type="contact">联系我们</button>
+    </view>
+    <!-- 列表3 -->
+    <view class="list">
+      <navigator hover-class="none" class="item arrow" url=" ">关于小兔鲜儿</navigator>
+    </view>
+    <!-- 操作按钮 -->
+    <view class="action">
+      <view class="button">退出登录</view>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+page {
+  background-color: #f4f4f4;
+}
+
+.viewport {
+  padding: 20rpx;
+}
+
+/* 列表 */
+.list {
+  padding: 0 20rpx;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 10rpx;
+  .item {
+    line-height: 90rpx;
+    padding-left: 10rpx;
+    font-size: 30rpx;
+    color: #333;
+    border-top: 1rpx solid #ddd;
+    position: relative;
+    text-align: left;
+    border-radius: 0;
+    background-color: #fff;
+    &::after {
+      width: auto;
+      height: auto;
+      left: auto;
+      border: none;
+    }
+    &:first-child {
+      border: none;
+    }
+    &::after {
+      right: 5rpx;
+    }
+  }
+  .arrow::after {
+    content: '\e6c2';
+    position: absolute;
+    top: 50%;
+    color: #ccc;
+    font-family: 'erabbit' !important;
+    font-size: 32rpx;
+    transform: translateY(-50%);
+  }
+}
+
+/* 操作按钮 */
+.action {
+  text-align: center;
+  line-height: 90rpx;
+  margin-top: 40rpx;
+  font-size: 32rpx;
+  color: #333;
+  .button {
+    background-color: #fff;
+    margin-bottom: 20rpx;
+    border-radius: 10rpx;
+  }
+}
+</style>
+```
+
+
+
+
+
+#### 4、退出登录
+
+**设置页需实现以下业务**：
+
+1. 退出登录，清理用户信息，返回上一页。
+2. 根据登录状态，按需展示页面内容。
+
+**实现步骤**：
+
+<img src="uniApp-day03.assets/image-20240226133913397.png" alt="image-20240226133913397" style="zoom:67%;" />
+
+**参考效果**：
+
+<img src="uniApp-day03.assets/image-20240226134008642.png" alt="image-20240226134008642" style="zoom:67%;" />
+
+
+
+##### 4.1 退出登录绑定tap事件
+
+```ts
+const onLogout = () => {
+  uni.showModal({
+    title: '',
+    content: '确定要退出登录吗？',
+
+    success(res) {
+      // 如果点击了确定
+      if (res.confirm) {
+        // 清空用户信息
+        memberStore.clearProfile()
+        // 返回上一页
+        uni.navigateBack()
+      }
+    },
+  })
+}
+```
+
+
+
+##### 4.2 内容条件渲染
+
+```vue
+<view class="list" v-if="memberStore.profile">
+    <navigator url="/pagesMember/address/address" hover-class="none" class="item arrow">
+        我的收货地址
+    </navigator>
+</view>
+...
+<!-- 操作按钮 -->
+<view class="action" v-if="memberStore.profile">
+    <view class="button" @tap="onLogout">退出登录</view>
+</view>
+```
+
+
+
+
+
+#### 5、个人信息页
+
+##### 5.1 分析
+
+**功能**：用户可以对会员信息进行更新操作，涉及到表单数据提交、图片读取、文件上传等知识点。
+
+**权限**：需要登录之后才能够访问该页面。
+
+<img src="uniApp-day03.assets/image-20240226144841131.png" alt="image-20240226144841131" style="zoom:67%;" />
+
+对于这种需要权限的页面，我们也可以将其归到分包页面中。
+
+
+
+##### 5.2 个人信息页准备
+
+实现步骤：
+
+<img src="uniApp-day03.assets/image-20240226145016400.png" alt="image-20240226145016400" style="zoom:67%;" />
+
+###### 新增分包页面
+
+会员信息页，处理成分包页面：`src/pagesMember/profile/profile.vue`
+
+```vue
+<script setup lang="ts">
+// 获取屏幕边界到安全区域距离
+const { safeAreaInsets } = uni.getSystemInfoSync()
+</script>
+
+<template>
+  <view class="viewport">
+    <!-- 导航栏 -->
+    <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+      <navigator open-type="navigateBack" class="back icon-left" hover-class="none"></navigator>
+      <view class="title">个人信息</view>
+    </view>
+    <!-- 头像 -->
+    <view class="avatar">
+      <view class="avatar-content">
+        <image class="image" src=" " mode="aspectFill" />
+        <text class="text">点击修改头像</text>
+      </view>
+    </view>
+    <!-- 表单 -->
+    <view class="form">
+      <!-- 表单内容 -->
+      <view class="form-content">
+        <view class="form-item">
+          <text class="label">账号</text>
+          <text class="account">账号名</text>
+        </view>
+        <view class="form-item">
+          <text class="label">昵称</text>
+          <input class="input" type="text" placeholder="请填写昵称" value="" />
+        </view>
+        <view class="form-item">
+          <text class="label">性别</text>
+          <radio-group>
+            <label class="radio">
+              <radio value="男" color="#27ba9b" :checked="true" />
+              男
+            </label>
+            <label class="radio">
+              <radio value="女" color="#27ba9b" :checked="false" />
+              女
+            </label>
+          </radio-group>
+        </view>
+        <view class="form-item">
+          <text class="label">生日</text>
+          <picker
+            class="picker"
+            mode="date"
+            start="1900-01-01"
+            :end="new Date()"
+            value="2000-01-01"
+          >
+            <view v-if="false">2000-01-01</view>
+            <view class="placeholder" v-else>请选择日期</view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <text class="label">城市</text>
+          <picker class="picker" mode="region" :value="['广东省', '广州市', '天河区']">
+            <view v-if="false">广东省广州市天河区</view>
+            <view class="placeholder" v-else>请选择城市</view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <text class="label">职业</text>
+          <input class="input" type="text" placeholder="请填写职业" value="" />
+        </view>
+      </view>
+      <!-- 提交按钮 -->
+      <button class="form-button">保 存</button>
+    </view>
+  </view>
+</template>
+
+<style lang="scss">
+page {
+  background-color: #f4f4f4;
+}
+
+.viewport {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/order_bg.png);
+  background-size: auto 420rpx;
+  background-repeat: no-repeat;
+}
+
+// 导航栏
+.navbar {
+  position: relative;
+
+  .title {
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .back {
+    position: absolute;
+    height: 40px;
+    width: 40px;
+    left: 0;
+    font-size: 20px;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+// 头像
+.avatar {
+  text-align: center;
+  width: 100%;
+  height: 260rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .image {
+    width: 160rpx;
+    height: 160rpx;
+    border-radius: 50%;
+    background-color: #eee;
+  }
+
+  .text {
+    display: block;
+    padding-top: 20rpx;
+    line-height: 1;
+    font-size: 26rpx;
+    color: #fff;
+  }
+}
+
+// 表单
+.form {
+  background-color: #f4f4f4;
+
+  &-content {
+    margin: 20rpx 20rpx 0;
+    padding: 0 20rpx;
+    border-radius: 10rpx;
+    background-color: #fff;
+  }
+
+  &-item {
+    display: flex;
+    height: 96rpx;
+    line-height: 46rpx;
+    padding: 25rpx 10rpx;
+    background-color: #fff;
+    font-size: 28rpx;
+    border-bottom: 1rpx solid #ddd;
+
+    &:last-child {
+      border: none;
+    }
+
+    .label {
+      width: 180rpx;
+      color: #333;
+    }
+
+    .account {
+      color: #666;
+    }
+
+    .input {
+      flex: 1;
+      display: block;
+      height: 46rpx;
+    }
+
+    .radio {
+      margin-right: 20rpx;
+    }
+
+    .picker {
+      flex: 1;
+    }
+    .placeholder {
+      color: #808080;
+    }
+  }
+
+  &-button {
+    height: 80rpx;
+    text-align: center;
+    line-height: 80rpx;
+    margin: 30rpx 20rpx;
+    color: #fff;
+    border-radius: 80rpx;
+    font-size: 30rpx;
+    background-color: #27ba9b;
+  }
+}
+</style>
+```
+
+
+
+###### 开启自定义导航
+
+```json
+{
+    "path": "profile/index",
+    "style": {
+        "navigationStyle": "custom",
+        "navigationBarBackgroundColor": "white",
+        "navigationBarTitleText": "个人信息页"
+    }
+}
+```
+
+
+
+##### 5.3 获取会员信息
+
+**接口封装** `src/services/profile.ts`
+
+```ts
+import type { ProfileDetail } from '@/types/member'
+import { http } from '@/utils/http'
+
+/**
+ * 获取个人信息
+ */
+export const getMemberProfileAPI = () => {
+    return http<ProfileDetail>({
+        method: 'GET',
+        url: '/member/profile',
+    })
+}
+```
+
+**类型声明**
+
+```ts
+/** 个人信息 用户详情信息 */
+export type ProfileDetail = {
+  /** 用户ID */
+  id: number
+  /** 头像  */
+  avatar: string
+  /** 账户名  */
+  account: string
+  /** 昵称 */
+  nickname?: string
+  /** 性别 */
+  gender?: Gender
+  /** 生日 */
+  birthday?: string
+  /** 省市区 */
+  fullLocation?: string
+  /** 职业 */
+  profession?: string
+}
+/** 性别 */
+export type Gender = '女' | '男'
+```
+
+类型声明封装升级（可选），提取用户信息通用部分，再复用类型。
+
+```ts
+/** 封装通用信息 */
+type BaseProfile = {
+  /** 用户ID */
+  id: number
+  /** 头像  */
+  avatar: string
+  /** 账户名  */
+  account: string
+  /** 昵称 */
+  nickname?: string
+}
+
+/** 小程序登录 登录用户信息 */
+export type LoginResult = BaseProfile & {
+  /** 用户ID */
+  id: number
+  /** 头像  */
+  avatar: string
+  /** 账户名  */
+  account: string
+  /** 昵称 */
+  nickname?: string
+  /** 手机号 */
+  mobile: string
+  /** 登录凭证 */
+  token: string
+}
+
+/** 个人信息 用户详情信息 */
+export type ProfileDetail = BaseProfile & {
+  /** 性别 */
+  gender?: Gender
+  /** 生日 */
+  birthday?: string
+  /** 省市区 */
+  fullLocation?: string
+  /** 职业 */
+  profession?: string
+}
+/** 性别 */
+export type Gender = '女' | '男'
+```
+
+
+
+##### 5.4 渲染会员信息
+
+会员信息页
+
+```vue
+<script setup lang="ts">
+import { getMemberProfileAPI } from '@/services/profile'
+import type { ProfileDetail } from '@/types/member'
+import { onLoad } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+
+// 获取屏幕边界到安全区域距离
+const { safeAreaInsets } = uni.getSystemInfoSync()
+
+// 获取个人信息
+const profile = ref<ProfileDetail>()
+const getMemberProfileData = async () => {
+  const res = await getMemberProfileAPI()
+  profile.value = res.result
+}
+
+onLoad(() => {
+  getMemberProfileData()
+})
+</script>
+
+<template>
+  <view class="viewport">
+    <!-- 导航栏 -->
+    <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+      <navigator open-type="navigateBack" class="back icon-left" hover-class="none"></navigator>
+      <view class="title">个人信息</view>
+    </view>
+    <!-- 头像 -->
+    <view class="avatar">
+      <view class="avatar-content">
+        <image class="image" :src="profile?.avatar" mode="aspectFill" />
+        <text class="text">点击修改头像</text>
+      </view>
+    </view>
+    <!-- 表单 -->
+    <view class="form">
+      <!-- 表单内容 -->
+      <view class="form-content">
+        <view class="form-item">
+          <text class="label">账号</text>
+          <text class="account">{{ profile?.account }}</text>
+        </view>
+        <view class="form-item">
+          <text class="label">昵称</text>
+          <input class="input" type="text" placeholder="请填写昵称" :value="profile?.nickname" />
+        </view>
+        <view class="form-item">
+          <text class="label">性别</text>
+          <radio-group>
+            <label class="radio">
+              <radio value="男" color="#27ba9b" :checked="profile?.gender === '男'" />
+              男
+            </label>
+            <label class="radio">
+              <radio value="女" color="#27ba9b" :checked="profile?.gender === '女'" />
+              女
+            </label>
+          </radio-group>
+        </view>
+        <view class="form-item">
+          <text class="label">出生日期</text>
+          <picker
+            class="picker"
+            mode="date"
+            :value="profile?.birthday"
+            start="1900-01-01"
+            :end="new Date()"
+          >
+            <view v-if="profile?.birthday">{{ profile?.birthday }}</view>
+            <view class="placeholder" v-else>请选择日期</view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <text class="label">城市</text>
+          <picker class="picker" :value="profile?.fullLocation?.split(' ')" mode="region">
+            <view v-if="profile?.fullLocation">{{ profile.fullLocation }}</view>
+            <view class="placeholder" v-else>请选择城市</view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <text class="label">职业</text>
+          <input class="input" type="text" placeholder="请填写职业" :value="profile?.profession" />
+        </view>
+      </view>
+      <!-- 提交按钮 -->
+      <button class="form-button">保 存</button>
+    </view>
+  </view>
+</template>
+```
+
+
+
+##### 5.5 修改会员信息
+
+###### 接口封装
+
+类型声明
+
+```ts
+// src/types/member.d.ts
+/** 个人信息 修改请求体参数 */
+export type ProfileParams = Pick<
+  ProfileDetail,
+  'nickname' | 'gender' | 'birthday' | 'profession'
+> & {
+  /** 省份编码 */
+  provinceCode?: string
+  /** 城市编码 */
+  cityCode?: string
+  /** 区/县编码 */
+  countyCode?: string
+}
+```
+
+接口封装：
+
+```ts
+/**
+ * 修改个人信息
+ * @param data 请求参数
+ */
+export const putMemberProfileAPI = (data: ProfileParams) => {
+  return request<ProfileDetail>({
+    method: 'PUT',
+    url: '/member/profile',
+    data: { ...data },
+  })
+}
+```
+
+###### 接口调用
+
+```ts
+
 ```
 

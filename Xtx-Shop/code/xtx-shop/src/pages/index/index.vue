@@ -3,11 +3,11 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { getHomeBannerAPI, getHomeCategoryAPI, getHomeHotAPI } from '@/services/home'
 import type { BannerItem, CategroyItem, HotItem } from '@/types/home'
-import type { XtxGuessInstance } from '@/types/component'
 import CustomNavbar from './components/CustomNavbar.vue'
 import CategoryPanel from './components/CategoryPanel.vue'
 import HotPanel from './components/HotPanel.vue'
 import PageSkeleton from './components/PageSkeleton.vue'
+import { useGuessList } from '@/composables/index'
 
 // 获取轮播图数据
 const bannerList = ref<BannerItem[]>([])
@@ -37,12 +37,7 @@ onLoad(async () => {
 })
 
 // 获取猜你喜欢组件实例
-const guessRef = ref<XtxGuessInstance>()
-// 滚动触底
-const onScrolltolower = () => {
-  // console.log('滚动触底了')
-  guessRef.value?.getMore()
-}
+const { guessRef, onScrolltolower } = useGuessList()
 // 下拉刷新状态
 const isTriggered = ref(false)
 // 下拉刷新

@@ -15,4 +15,5 @@ declare module 'vue' {
 }
 
 // 组件实例类型
+// InstanceType 是 TS的一个工具函数，用于获取某个实列的类型
 export type XtxGuessInstance = InstanceType<typeof XtxGuess>

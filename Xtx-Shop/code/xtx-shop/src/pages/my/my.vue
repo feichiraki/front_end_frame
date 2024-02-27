@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMemberStore } from '@/stores'
+import { useGuessList } from '@/composables/index'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -13,10 +14,12 @@ const orderTypes = [
 
 // 获取会员信息
 const memberStore = useMemberStore()
+// 猜你喜欢组合式函数
+const { guessRef, onScrolltolower } = useGuessList()
 </script>
 
 <template>
-  <scroll-view class="viewport" scroll-y enable-back-to-top>
+  <scroll-view @scrolltolower="onScrolltolower" class="viewport" scroll-y enable-back-to-top>
     <!-- 个人资料 -->
     <view class="profile" :style="{ paddingTop: safeAreaInsets!.top + 'px' }">
       <!-- 情况1：已登录 -->
@@ -34,7 +37,7 @@ const memberStore = useMemberStore()
           <view class="nickname">
             {{ memberStore.profile.nickname || memberStore.profile.account }}
           </view>
-          <navigator class="extra" url="/pagesMember/profile/profile" hover-class="none">
+          <navigator class="extra" url="/pagesMember/profile/index" hover-class="none">
             <text class="update">更新头像昵称</text>
           </navigator>
         </view>
@@ -57,7 +60,7 @@ const memberStore = useMemberStore()
           </view>
         </view>
       </view>
-      <navigator class="settings" url="/pagesMember/settings/settings" hover-class="none">
+      <navigator class="settings" url="/pagesMember/settings/index" hover-class="none">
         设置
       </navigator>
     </view>
