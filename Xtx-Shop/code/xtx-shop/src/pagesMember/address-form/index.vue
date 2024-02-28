@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { postMemberAddress } from '@/services/address'
+import { postMemberAddress, getMemberAddress, putMemberAddress } from '@/services/address'
+import { onLoad } from '@dcloudio/uni-app'
 
 // 获取页面参数
 const query = defineProps<{
@@ -46,13 +47,36 @@ const onSwitchChange: UniHelper.SwitchOnChange = (e) => {
 
 // 提交表单数据
 const onSubmit = async () => {
-  // 处理提交逻辑
-  await postMemberAddress(form.value)
-  // 成功提示
-  uni.showToast({ title: '保存成功' })
+  if (query.id) {
+    console.log(form.value)
+    // 修改地址逻辑
+    await putMemberAddress(query.id!, form.value)
+    // 成功提示
+    uni.showToast({ title: '修改成功' })
+  } else {
+    // 新增地址逻辑
+    await postMemberAddress(form.value)
+    // 成功提示
+    uni.showToast({ title: '保存成功' })
+  }
   // 返回上一页
   setTimeout(() => uni.navigateBack(), 400)
 }
+
+// 获取地址详情
+const getAddressDetail = async () => {
+  // 请求接口获取地址详情
+  const res = await getMemberAddress(query.id!)
+  // 把数据合并到表单中
+  Object.assign(form.value, res.result)
+}
+
+// 页面加载时获取地址详情
+onLoad(() => {
+  if (query.id) {
+    getAddressDetail()
+  }
+})
 </script>
 
 <template>
@@ -69,8 +93,13 @@ const onSubmit = async () => {
       </view>
       <view class="form-item">
         <text class="label">所在地区</text>
-        <picker class="picker" mode="region" value="" @change="onRegionChange">
-          <view v-if="form.fullLocation">广东省 广州市 天河区</view>
+        <picker
+          class="picker"
+          mode="region"
+          :value="form.fullLocation.split(' ')"
+          @change="onRegionChange"
+        >
+          <view v-if="form.fullLocation">{{ form.fullLocation }}</view>
           <view v-else class="placeholder">请选择省/市/区(县)</view>
         </picker>
       </view>
@@ -80,12 +109,18 @@ const onSubmit = async () => {
       </view>
       <view class="form-item">
         <label class="label">设为默认地址</label>
-        <switch class="switch" @change="onSwitchChange" color="#27ba9b" :checked="true" />
+        <switch
+          class="switch"
+          @change="onSwitchChange"
+          color="#27ba9b"
+          :checked="form.isDefault === 1"
+        />
       </view>
     </form>
   </view>
   <!-- 提交按钮 -->
   <button class="button" @tap="onSubmit">保存并使用</button>
+  {{ form }}
 </template>
 
 <style lang="scss">

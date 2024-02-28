@@ -23,7 +23,7 @@
 
 ###### 地址管理页
 
-`src/pagesMember/address/address.vue`
+`src/pagesMember/address/index.vue`
 
 ```vue
 <script setup lang="ts">
@@ -195,7 +195,7 @@ page {
 
 ###### 地址表单页
 
-`src/pagesMember/address-form/address-form.vue`
+`src/pagesMember/address-form/index.vue`
 
 ```vue
 <script setup lang="ts">
@@ -490,6 +490,273 @@ const onSubmit = async () => {
 为了能及时看到新建的收货地址，需在 `onShow` 生命周期中获取地址列表数据。
 
 <img src="uniApp—day04.assets/image-20240227234900726.png" alt="image-20240227234900726" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240228011433899.png" alt="image-20240228011433899" style="zoom:67%;" />
+
+##### 3.1 接口调用
+
+> 接口地址：/member/address
+>
+> 请求方式：GET
+>
+> 登录权限: **是**
+>
+> 请求参数：无
+
+###### 类型声明
+
+`src/types/address.d.ts`
+
+```ts
+/** 收货地址项 */
+export type AddressItem = {
+  /** 收货人姓名 */
+  receiver: string
+  /** 联系方式 */
+  contact: string
+  /** 省份编码 */
+  provinceCode: string
+  /** 城市编码 */
+  cityCode: string
+  /** 区/县编码 */
+  countyCode: string
+  /** 详细地址 */
+  address: string
+  /** 默认地址，1为是，0为否 */
+  isDefault: number
+  /** 收货地址 id */
+  id: string
+  /** 省市区 */
+  fullLocation: string
+}
+```
+
+###### 接口封装
+
+`src/types/address.ts`
+
+```ts
+/**
+ * 获取收货地址列表
+ */
+export const getMemberAddressAPI = () => {
+  return request<AddressItem[]>({
+    method: 'GET',
+    url: '/member/address',
+  })
+}
+```
+
+###### 复用地址类型
+
+`src/types/goods.d.ts`
+
+```ts
++ import type { AddressItem } from './address'
+
+- /** 地址信息 */
+- export type AddressItem = {
+-   receiver: string
+-   contact: string
+-   provinceCode: string
+-   cityCode: string
+-   countyCode: string
+-   address: string
+-   isDefault: number
+-   id: string
+-   fullLocation: string
+- }
+```
+
+> 温馨提示
+>
+> 用户登录后再访问**商品详情**，商品详情字段中包含用户收货地址列表，可以**复用收货地址类型**。
+
+
+
+##### 3.2 实现代码
+
+地址管理页
+
+```vue
+<script setup lang="ts">
+import { getMemberAddressAPI } from '@/services/address'
+import type { AddressItem } from '@/types/address'
+import { onShow } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+
+// 获取收货地址列表数据
+const addressList = ref<AddressItem[]>([])
+const getMemberAddressData = async () => {
+  const res = await getMemberAddressAPI()
+  addressList.value = res.result
+}
+
+// 初始化调用(页面显示)
+onShow(() => {
+  getMemberAddressData()
+})
+</script>
+
+<template>
+  <view class="viewport">
+    <!-- 地址列表 -->
+    <scroll-view class="scroll-view" scroll-y>
+      <view v-if="true" class="address">
+        <view class="address-list">
+          <!-- 收获地址项 -->
+          <view class="item" v-for="item in addressList" :key="item.id">
+            <view class="item-content">
+              <view class="user">
+                {{ item.receiver }}
+                <text class="contact">{{ item.contact }}</text>
+                <text v-if="item.isDefault" class="badge">默认</text>
+              </view>
+              <view class="locate">{{ item.fullLocation }} {{ item.address }}</view>
+              <navigator
+                class="edit"
+                hover-class="none"
+                :url="`/pagesMember/address-form/address-form?id=${item.id}`"
+              >
+                修改
+              </navigator>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view v-else class="blank">暂无收货地址</view>
+    </scroll-view>
+    <!-- 添加按钮 -->
+    <view class="add-btn">
+      <navigator hover-class="none" url="/pagesMember/address-form/address-form">
+        新建地址
+      </navigator>
+    </view>
+  </view>
+</template>
+```
+
+
+
+
+
+#### 4、修改地址页
+
+通过页面参数 `id` 来区分当前是**修改地址**还是**新建地址**。
+
+<img src="uniApp—day04.assets/image-20240228011526669.png" alt="image-20240228011526669" style="zoom:67%;" />
+
+##### 4.1 数据回显
+
+修改地址之前，需要先实现数据回显，用户再进行有针对性的修改。
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240228011903423.png" alt="image-20240228011903423" style="zoom:67%;" />
+
+###### 接口封装
+
+```ts
+/**
+ *获取收货地址详情
+ * @param id 请求参数
+ */
+export const getMemberAddress = (id: string) => {
+  return request<AddressItem>({
+    method: 'GET',
+    url: `/member/address/${id}`,
+  })
+}
+```
+
+###### 实现代码
+
+页面初始化的时候根据 `id` 获取地址详情，把获取的数据合并到表单数据中，用于数据回显。
+
+```vue
+<script setup lang="ts">
+// 获取收货地址详情数据
+const getMemberAddressByIdData = async () => {
+  // 有 id 才调用接口
+  if (query.id) {
+    // 发送请求
+    const res = await getMemberAddressByIdAPI(query.id)
+    // 把数据合并到表单中
+    Object.assign(form.value, res.result)
+  }
+}
+
+// 页面加载
+onLoad(() => {
+  getMemberAddressByIdData()
+})
+</script>
+```
+
+
+
+##### 4.2 更新地址
+
+将用户修改后的地址信息重新发送到服务端进行存储。
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240228012921053.png" alt="image-20240228012921053" style="zoom:67%;" />
+
+###### 封装接口
+
+```ts
+/**
+ *修改收货地址
+ * @param id 地址的id
+ * @param data 更新的数据
+ */
+export const putMemberAddress = (id: string, data: AddressParams) => {
+  return request({
+    method: 'PUT',
+    url: `/member/address/${id}`,
+    data,
+  })
+}
+```
+
+###### 实现代码
+
+根据是否有地址 id 来判断提交表单到底是新建地址还是更新地址。
+
+`src/pagesMember/address-form/index.vue`
+
+```ts
+<script setup lang="ts">
+// 提交表单
+const onSubmit = async () => {
+  // 判断当前页面是否有地址 id
+  if (query.id) {
+    // 修改地址请求
+    await putMemberAddressByIdAPI(query.id, form.value)
+  } else {
+    // 新建地址请求
+    await postMemberAddressAPI(form.value)
+  }
+  // 成功提示
+  uni.showToast({ icon: 'success', title: query.id ? '修改成功' : '添加成功' })
+  // 返回上一页
+  setTimeout(() => {
+    uni.navigateBack()
+  }, 400)
+}
+</script>
+```
+
+
+
+
+
+#### 5、表单校验
+
+
 
 
 
