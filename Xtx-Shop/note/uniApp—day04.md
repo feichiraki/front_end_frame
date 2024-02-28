@@ -756,6 +756,57 @@ const onSubmit = async () => {
 
 #### 5、表单校验
 
+通过 `uni-ui` 组件库的 [uni-forms](https://uniapp.dcloud.net.cn/component/uniui/uni-forms.html#如何使用) 组件实现表单校验。
+
+<img src="uniApp—day04.assets/image-20240228123253926.png" alt="image-20240228123253926" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240228123317051.png" alt="image-20240228123317051" style="zoom:67%;" />
+
+
+
+
+
+#### 6、删除地址
+
+通过 `uni-ui` 组件库的 [uni-swipe-action](https://uniapp.dcloud.net.cn/component/uniui/uni-swipe-action.html) 组件实现侧滑删除。
+
+<img src="uniApp—day04.assets/image-20240228143023081.png" alt="image-20240228143023081" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240228143045933.png" alt="image-20240228143045933" style="zoom:67%;" />
+
+##### 6.1 侧滑组件用法
+
+```vue
+<template>
+  <!-- 滑动操作分区 -->
+  <uni-swipe-action>
+    <!-- 滑动操作项 -->
+    <uni-swipe-action-item>
+      <!-- 默认插槽 -->
+      <view>内容</view>
+      <!-- 右侧插槽 -->
+      <template #right>
+        <button class="delete-button">删除</button>
+      </template>
+    </uni-swipe-action-item>
+  </uni-swipe-action>
+</template>
+```
+
+
+
+##### 6.2 接口封装
+
+
+
+
+
+
+
 
 
 
