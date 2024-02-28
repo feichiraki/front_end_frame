@@ -987,7 +987,257 @@ const onDeleteAddress = (id: string) => {
 
 
 
-### Sku模块
+### SKU模块
+
+> 学会使用[插件市场](https://ext.dcloud.net.cn/)，下载并使用 `SKU` 组件，实现**商品详情页**规格展示和交互。
+
+#### 1、SKU模块 – 基本概念
+
+`SKU 概念`：存货单位（Stock Keeping Unit），库存管理的最小可用单元，通常称为“单品”。
+
+SKU 常见于电商领域，对于前端工程师而言，更多关注 [SKU 算法](https://juejin.cn/post/7002746459456176158)，基于后端的 SKU 数据渲染页面并实现交互。
+
+<img src="uniApp—day04.assets/image-20240228185237619.png" alt="image-20240228185237619" style="zoom:67%;" />
+
+
+
+
+
+#### 2、下载SKU插件
+
+[uni-app 插件市场](https://ext.dcloud.net.cn/)，是 uni-app 官方插件生态集中地。
+
+`SKU` 属于电商常见业务，插件市场有现成的 `SKU` 插件，我们下载并在项目中使用。
+
+<img src="uniApp—day04.assets/image-20240228190100026.png" alt="image-20240228190100026" style="zoom:67%;" />
+
+经过综合评估，我们选择该[SKU 插件](https://ext.dcloud.net.cn/plugin?id=2848)，请下载插件到本地。
+
+> 常见问题
+>
+> Q：如何评估第三方插件的质量？
+>
+> A：查看插件的**评分、评价、下载量、更新频率以及文档完整性**，以确保插件具有良好的社区口碑、兼容性、性能和维护状况。
+
+
+
+#### 3、使用SKU插件
+
+##### 3.1 组件安装到自己项目
+
+1. 复制 `vk-data-goods-sku-popup` 和 `vk-data-input-number-box` 到项目的根 `components` 目录下。
+2. 复制例子代码并运行体验。
+
+`src/pages/cart/cart.vue`
+
+```vue
+<!-- 静态数据演示版本 适合任何后端 -->
+<template>
+  <view class="app">
+    <button @click="openSkuPopup()">打开SKU组件</button>
+
+    <vk-data-goods-sku-popup
+      ref="skuPopup"
+      v-model="skuKey"
+      border-radius="20"
+      :localdata="goodsInfo"
+      :mode="skuMode"
+      @open="onOpenSkuPopup"
+      @close="onCloseSkuPopup"
+      @add-cart="addCart"
+      @buy-now="buyNow"
+    ></vk-data-goods-sku-popup>
+  </view>
+</template>
+
+<script>
+var that // 当前页面对象
+export default {
+  data() {
+    return {
+      // 是否打开SKU弹窗
+      skuKey: false,
+      // SKU弹窗模式
+      skuMode: 1,
+      // 后端返回的商品信息
+      goodsInfo: {},
+    }
+  },
+  // 监听 - 页面每次【加载时】执行(如：前进)
+  onLoad(options) {
+    that = this
+    that.init(options)
+  },
+  methods: {
+    // 初始化
+    init(options = {}) {},
+    // 获取商品信息，并打开sku弹出
+    openSkuPopup() {
+      /**
+       * 获取商品信息
+       * 这里可以看到每次打开SKU都会去重新请求商品信息,为的是每次打开SKU组件可以实时看到剩余库存
+       */
+      // 此处写接口请求，并将返回的数据进行处理成goodsInfo的数据格式，
+      // goodsInfo是后端返回的数据
+      that.goodsInfo = {
+        _id: '002',
+        name: '迪奥香水',
+        goods_thumb:
+          'https://res.lancome.com.cn/resources/2020/9/11/15998112890781924_920X920.jpg?version=20200917220352530',
+        sku_list: [
+          {
+            _id: '004',
+            goods_id: '002',
+            goods_name: '迪奥香水',
+            image:
+              'https://res.lancome.com.cn/resources/2020/9/11/15998112890781924_920X920.jpg?version=20200917220352530',
+            price: 19800,
+            sku_name_arr: ['50ml/瓶'],
+            stock: 100,
+          },
+          {
+            _id: '005',
+            goods_id: '002',
+            goods_name: '迪奥香水',
+            image:
+              'https://res.lancome.com.cn/resources/2020/9/11/15998112890781924_920X920.jpg?version=20200917220352530',
+            price: 9800,
+            sku_name_arr: ['70ml/瓶'],
+            stock: 100,
+          },
+        ],
+        spec_list: [
+          {
+            list: [
+              {
+                name: '20ml/瓶',
+              },
+              {
+                name: '50ml/瓶',
+              },
+              {
+                name: '70ml/瓶',
+              },
+            ],
+            name: '规格',
+          },
+        ],
+      }
+      that.skuKey = true
+    },
+    // sku组件 开始-----------------------------------------------------------
+    onOpenSkuPopup() {
+      console.log('监听 - 打开sku组件')
+    },
+    onCloseSkuPopup() {
+      console.log('监听 - 关闭sku组件')
+    },
+    // 加入购物车前的判断
+    addCartFn(obj) {
+      let { selectShop } = obj
+      // 模拟添加到购物车,请替换成你自己的添加到购物车逻辑
+      let res = {}
+      let name = selectShop.goods_name
+      if (selectShop.sku_name != '默认') {
+        name += '-' + selectShop.sku_name_arr
+      }
+      res.msg = `${name} 已添加到购物车`
+      if (typeof obj.success == 'function') obj.success(res)
+    },
+    // 加入购物车按钮
+    addCart(selectShop) {
+      console.log('监听 - 加入购物车')
+      that.addCartFn({
+        selectShop: selectShop,
+        success: function (res) {
+          // 实际业务时,请替换自己的加入购物车逻辑
+          that.toast(res.msg)
+          setTimeout(function () {
+            that.skuKey = false
+          }, 300)
+        },
+      })
+    },
+    // 立即购买
+    buyNow(selectShop) {
+      console.log('监听 - 立即购买')
+      that.addCartFn({
+        selectShop: selectShop,
+        success: function (res) {
+          // 实际业务时,请替换自己的立即购买逻辑
+          that.toast('立即购买')
+        },
+      })
+    },
+    toast(msg) {
+      uni.showToast({
+        title: msg,
+        icon: 'none',
+      })
+    },
+  },
+}
+</script>
+
+<style lang="scss" scoped>
+.app {
+  padding: 30rpx;
+  font-size: 28rpx;
+}
+</style>
+```
+
+
+
+##### 3.2 插件文档部分
+
+###### Props和事件的解释
+
+Props 参数
+
+|   Props   |                     说明                      |  类型   | 默认值 |   可选值    |
+| :-------: | :-------------------------------------------: | :-----: | :----: | :---------: |
+|  v-model  |  双向绑定，true 为打开组件，false 为关闭组件  | Boolean | false  | true、false |
+|   mode    | 模式 1:都显示 2:只显示购物车 3:只显示立即购买 | Number  |   1    |   1、2、3   |
+| localdata |              商品信息本地数据源               | Object  |   -    |      -      |
+
+Event 事件名
+
+|  Event   |                    说明                     |            回调参数             |
+| :------: | :-----------------------------------------: | :-----------------------------: |
+| add-cart | 点击添加到购物车时（需选择完 SKU 才会触发） | selectShop：当前选择的 sku 数据 |
+| buy-now  |   点击立即购买时（需选择完 SKU 才会触发）   | selectShop：当前选择的 sku 数据 |
+|   open   |                 打开组件时                  |                -                |
+|  close   |                 关闭组件时                  |                -                |
+
+常见问题
+
+> Q：为什么插件使用时无需导入？
+>
+> A：`pages.json` 的 `easycom` 配置中，默认自动扫描 `xxx/xxx.vue` 格式的组件，**实现自动导入**。
+>
+> Q：为什么组件代码 Git 提交时报错？
+>
+> A：插件未采用 `eslint` 校验代码，请在插件源文件中添加 `/* eslint-disable */`，禁用 `eslint`。
+
+###### 解决项目中eslint的问题
+
+在 `vk-data-goods-sku-popup.vue` 和 `vk-data-input-number-box.vue` 组件禁用 `eslint`。
+
+```vue
+<script>
+/* eslint-disable */
+// 省略组件源代码
+</script>
+```
+
+温馨提示: 插件的作者已合并 [`eslint-disable` PR](https://gitee.com/vk-uni/vk-u-goods-sku-popup/commit/e114364dd7166be5f66f3ee893d8b32efafa417b) ，现在已无需手动添加该注释。
+
+
+
+
+
+
 
 
 
