@@ -1553,3 +1553,60 @@ const selectArrText = computed(() => {
 
 ### 购物车模块
 
+> 完成加入购物车，购物车列表交互，计算结算金额等业务。
+
+#### 1、Sku—加入购物车
+
+在商品详情页把 **选中规格后的商品(SKU)** 加入购物车。
+
+<img src="uniApp—day04.assets/image-20240301003004537.png" alt="image-20240301003004537" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240301003023287.png" alt="image-20240301003023287" style="zoom:67%;" />
+
+即将使用到的Sku事件：
+
+<img src="uniApp—day04.assets/image-20240301002926576.png" alt="image-20240301002926576" style="zoom:80%;" />
+
+##### 1.1 封装接口
+
+`src/services/cart.ts`
+
+```ts
+import { request } from '@/utils/request'
+/**
+ * 加入购物车
+ * @param data 请求体参数
+ */
+export const postMemberCartAPI = (data: { skuId: string; count: number }) => {
+  return request({
+    method: 'POST',
+    url: '/member/cart',
+    data,
+  })
+}
+```
+
+
+
+##### 1.2 实现代码
+
+通过 `SKU` 组件提供的 `add-cart` 事件，获取加入购物车时所需的参数。
+
+```vue
+<script setup lang="ts">
+// 加入购物车事件
+const onAddCart = async (ev: SkuPopupEvent) => {
+  await postMemberCartAPI({ skuId: ev._id, count: ev.buy_num })
+  uni.showToast({ title: '添加成功' })
+  isShowSku.value = false
+}
+</script>
+
+<template>
+  <!-- SKU弹窗组件 -->
+  <vk-data-goods-sku-popup v-model="isShowSku" :localdata="localdata" @add-cart="onAddCart" />
+</template>
+```
+
