@@ -6,6 +6,15 @@ export type SkuPopup = Component<SkuPopupProps>
 /** SKU 弹出层实例 */
 export type SkuPopupInstance = InstanceType<SkuPopup>
 
+/** 按钮模式：枚举 */
+export enum SkuMode {
+  /** 都显示 */
+  Both = 1,
+  /** 只显示购物车 */
+  Cart = 2,
+  /** 只显示立即购买 */
+  Buy = 3,
+}
 /** SKU 弹出层属性 */
 export type SkuPopupProps = {
   /** 双向绑定，true 为打开组件，false 为关闭组件 */

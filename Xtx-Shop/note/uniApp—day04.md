@@ -1451,7 +1451,103 @@ const localdata = ref({} as SkuPopupLocaldata)
 
 
 
-###### 
+##### 5.2 打开弹窗交互
+
+SKU 弹窗的按钮有三种形式。
+
+<img src="uniApp—day04.assets/image-20240229182617088.png" alt="image-20240229182617088" style="zoom: 80%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240229182651184.png" alt="image-20240229182651184" style="zoom:67%;" />
+
+```vue
+<script setup lang="ts">
+// 按钮模式
+enum SkuMode {
+  Both = 1,
+  Cart = 2,
+  Buy = 3,
+}
+const mode = ref<SkuMode>(SkuMode.Cart)
+// 打开SKU弹窗修改按钮模式
+const openSkuPopup = (val: SkuMode) => {
+  // 显示SKU弹窗
+  isShowSku.value = true
+  // 修改按钮模式
+  mode.value = val
+}
+</script>
+
+<template>
+  <!-- SKU弹窗组件 -->
+  <vk-data-goods-sku-popup
+    v-model="isShowSku"
+    :localdata="localdata"
+    :mode="mode"
+    add-cart-background-color="#FFA868"
+    buy-now-background-color="#27BA9B"
+  />
+
+  <!-- 显示两个按钮 -->
+  <view @tap="openSkuPopup(SkuMode.Both)" class="item arrow">请选择商品规格</view>
+  <!-- 显示一个按钮 -->
+  <view @tap="openSkuPopup(SkuMode.Cart)" class="addcart"> 加入购物车 </view>
+  <view @tap="openSkuPopup(SkuMode.Buy)" class="payment"> 立即购买 </view>
+</template>
+```
+
+
+
+##### 5.3 渲染被选中的值
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240229235243889.png" alt="image-20240229235243889" style="zoom:67%;" />
+
+1. 通过 `ref` 获取组件实例。
+2. 通过 `computed` 计算出**被选中的值**，渲染到界面中。
+
+```vue
+<script setup lang="ts">
+// SKU组件实例
+const skuPopupRef = ref<SkuPopupInstance>()
+// 计算被选中的值
+const selectArrText = computed(() => {
+  return skuPopupRef.value?.selectArr?.join(' ').trim() || '请选择商品规格'
+})
+</script>
+
+<template>
+  <!-- SKU弹窗组件 -->
+  <vk-data-goods-sku-popup
+    v-model="isShowSku"
+    :localdata="localdata"
+    :mode="mode"
+    add-cart-background-color="#FFA868"
+    buy-now-background-color="#27BA9B"
+    ref="skuPopupRef"
+    :actived-style="{
+      color: '#27BA9B',
+      borderColor: '#27BA9B',
+      backgroundColor: '#E9F8F5',
+    }"
+  />
+  <!-- 操作面板 -->
+  <view class="action">
+    <view @tap="openSkuPopup(SkuMode.Both)" class="item arrow">
+      <text class="label">选择</text>
+      <text class="text ellipsis"> {{ selectArrText }} </text>
+    </view>
+  </view>
+</template>
+```
+
+至此，已经完成 `SKU` 组件的交互，接下来进入到购物车模块，并实现加入购物车功能。
+
+
+
+
 
 
 
