@@ -1237,9 +1237,221 @@ Event 事件名
 
 
 
+#### 4、插件类型问题
+
+尽管该插件未采用 TS 开发，但作者提供了详细的[插件文档](https://ext.dcloud.net.cn/plugin?id=2848)，我们可以依据文档为插件添加 TS 类型声明文件，从而提高项目数据校验的安全性。
+
+##### 4.1 类型声明文件
+
+`vk-data-goods-sku-popup.d.ts`
+
+```ts
+import { Component } from '@uni-helper/uni-app-types'
+
+/** SKU 弹出层 */
+export type SkuPopup = Component<SkuPopupProps>
+
+/** SKU 弹出层实例 */
+export type SkuPopupInstance = InstanceType<SkuPopup>
+
+/** SKU 弹出层属性 */
+export type SkuPopupProps = {
+  /** 双向绑定，true 为打开组件，false 为关闭组件 */
+  modelValue: boolean
+  /** 商品信息本地数据源 */
+  localdata: SkuPopupLocaldata
+  /** 按钮模式 1:都显示 2:只显示购物车 3:只显示立即购买 */
+  mode?: 1 | 2 | 3
+  /** 该商品已抢完时的按钮文字 */
+  noStockText?: string
+  /** 库存文字 */
+  stockText?: string
+  /** 点击遮罩是否关闭组件 */
+  maskCloseAble?: boolean
+  /** 顶部圆角值 */
+  borderRadius?: string | number
+  /** 最小购买数量 */
+  minBuyNum?: number
+  /** 最大购买数量 */
+  maxBuyNum?: number
+  /** 每次点击后的数量 */
+  stepBuyNum?: number
+  /** 是否只能输入 step 的倍数 */
+  stepStrictly?: boolean
+  /** 是否隐藏库存的显示 */
+  hideStock?: false
+  /** 主题风格 */
+  theme?: 'default' | 'red-black' | 'black-white' | 'coffee' | 'green'
+  /** 默认金额会除以100（即100=1元），若设置为0，则不会除以100（即1=1元） */
+  amountType?: 1 | 0
+  /** 自定义获取商品信息的函数（已知支付宝不支持，支付宝请改用localdata属性） */
+  customAction?: () => void
+  /** 是否显示右上角关闭按钮 */
+  showClose?: boolean
+  /** 关闭按钮的图片地址 */
+  closeImage?: string
+  /** 价格的字体颜色 */
+  priceColor?: string
+  /** 立即购买 - 按钮的文字 */
+  buyNowText?: string
+  /** 立即购买 - 按钮的字体颜色 */
+  buyNowColor?: string
+  /** 立即购买 - 按钮的背景颜色 */
+  buyNowBackgroundColor?: string
+  /** 加入购物车 - 按钮的文字 */
+  addCartText?: string
+  /** 加入购物车 - 按钮的字体颜色 */
+  addCartColor?: string
+  /** 加入购物车 - 按钮的背景颜色 */
+  addCartBackgroundColor?: string
+  /** 商品缩略图背景颜色 */
+  goodsThumbBackgroundColor?: string
+  /** 样式 - 不可点击时,按钮的样式 */
+  disableStyle?: object
+  /** 样式 - 按钮点击时的样式 */
+  activedStyle?: object
+  /** 样式 - 按钮常态的样式 */
+  btnStyle?: object
+  /** 字段名 - 商品表id的字段名 */
+  goodsIdName?: string
+  /** 字段名 - sku表id的字段名 */
+  skuIdName?: string
+  /** 字段名 - 商品对应的sku列表的字段名 */
+  skuListName?: string
+  /** 字段名 - 商品规格名称的字段名 */
+  specListName?: string
+  /** 字段名 - sku库存的字段名 */
+  stockName?: string
+  /** 字段名 - sku组合路径的字段名 */
+  skuArrName?: string
+  /** 字段名 - 商品缩略图字段名(未选择sku时) */
+  goodsThumbName?: string
+  /** 被选中的值 */
+  selectArr?: string[]
+
+  /** 打开弹出层 */
+  onOpen: () => void
+  /** 关闭弹出层 */
+  onClose: () => void
+  /** 点击加入购物车时（需选择完SKU才会触发）*/
+  onAddCart: (event: SkuPopupEvent) => void
+  /** 点击立即购买时（需选择完SKU才会触发）*/
+  onBuyNow: (event: SkuPopupEvent) => void
+}
+
+/**  商品信息本地数据源 */
+export type SkuPopupLocaldata = {
+  /** 商品 ID */
+  _id: string
+  /** 商品名称 */
+  name: string
+  /** 商品图片 */
+  goods_thumb: string
+  /** 商品规格列表 */
+  spec_list: SkuPopupSpecItem[]
+  /** 商品SKU列表 */
+  sku_list: SkuPopupSkuItem[]
+}
+
+/** 商品规格名称的集合 */
+export type SkuPopupSpecItem = {
+  /** 规格名称 */
+  name: string
+  /** 规格集合 */
+  list: { name: string }[]
+}
+
+/** 商品SKU列表 */
+export type SkuPopupSkuItem = {
+  /** SKU ID */
+  _id: string
+  /**  商品 ID */
+  goods_id: string
+  /** 商品名称 */
+  goods_name: string
+  /** 商品图片 */
+  image: string
+  /** SKU 价格 * 100, 注意：需要乘以 100 */
+  price: number
+  /** SKU 规格组成, 注意：需要与 spec_list 数组顺序对应 */
+  sku_name_arr: string[]
+  /** SKU 库存 */
+  stock: number
+}
+
+/** 当前选择的sku数据 */
+export type SkuPopupEvent = SkuPopupSkuItem & {
+  /** 商品购买数量 */
+  buy_num: number
+}
+
+/** 全局组件类型声明 */
+declare module 'vue' {
+  export interface GlobalComponents {
+    'vk-data-goods-sku-popup': SkuPopup
+  }
+}
+```
 
 
 
+
+
+#### 5、核心业务
+
+##### 5.1 渲染商品规格
+
+使用以下两个属性：
+
+- `localdata` 绑定商品 `SKU` 数据来源
+- `v-model` 双向绑定，显示/隐藏组件
+
+**注意**：后端返回的数据格式和插件所需的格式不一致，我们需要按插件要求进行处理。
+
+```vue
+<script setup lang="ts">
+import type { SkuPopupLocaldata } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
+
+// 获取商品详情信息
+const goods = ref<GoodsResult>()
+const getGoodsByIdData = async () => {
+  const res = await getGoodsByIdAPI(query.id)
+  goods.value = res.result
+  // SKU组件所需格式
+  localdata.value = {
+    _id: res.result.id,
+    name: res.result.name,
+    goods_thumb: res.result.mainPictures[0],
+    spec_list: res.result.specs.map((v) => ({ name: v.name, list: v.values })),
+    sku_list: res.result.skus.map((v) => ({
+      _id: v.id,
+      goods_id: res.result.id,
+      goods_name: res.result.name,
+      image: v.picture,
+      price: v.price * 100, // 注意：需要乘以 100
+      stock: v.inventory,
+      sku_name_arr: v.specs.map((vv) => vv.valueName),
+    })),
+  }
+}
+
+// 是否显示SKU组件
+const isShowSku = ref(false)
+// 商品信息
+const localdata = ref({} as SkuPopupLocaldata)
+</script>
+
+<template>
+  <!-- SKU弹窗组件 -->
+  <vk-data-goods-sku-popup v-model="isShowSku" :localdata="localdata" />
+  <!-- 弹窗测试 -->
+  <button @tap="isShowSku = true">打开 SKU 弹窗</button>
+</template>
+```
+
+
+
+###### 
 
 
 
