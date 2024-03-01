@@ -1,3 +1,4 @@
+import type { CartItem } from '@/types/cart'
 import { request } from '@/utils/request'
 
 /**
@@ -9,5 +10,15 @@ export const postMemberCart = (data: { skuId: string; count: number }) => {
     method: 'POST',
     url: '/member/cart',
     data,
+  })
+}
+
+/**
+ * 获取购物车列表
+ */
+export const getMemberCartAPI = () => {
+  return request<CartItem[]>({
+    method: 'GET',
+    url: '/member/cart',
   })
 }
