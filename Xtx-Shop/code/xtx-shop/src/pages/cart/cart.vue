@@ -2,8 +2,9 @@
 import { useMemberStore } from '@/stores'
 import type { CartItem } from '@/types/cart'
 import { ref } from 'vue'
-import { getMemberCartAPI } from '@/services/cart'
+import { getMemberCartAPI, deleteMemberCartAPI, putMemberCartBySkuIdAPI } from '@/services/cart'
 import { onShow } from '@dcloudio/uni-app'
+import type { InputNumberBoxEvent } from '@/components/vk-data-input-number-box/vk-data-input-number-box'
 
 // 获取会员信息，判断是否登录
 const memberStore = useMemberStore()
@@ -23,6 +24,27 @@ onShow(() => {
     getCartList()
   }
 })
+
+// 滑块删除购物车
+const onDeleteCart = (id: string) => {
+  // 弹窗二次确定
+  uni.showModal({
+    content: '确认删除该商品吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        // 调用删除购物车接口
+        await deleteMemberCartAPI([id])
+        // 重新获取购物车数据
+        getCartList()
+      }
+    },
+  })
+}
+
+// 修改商品数量
+const onChangeCount = (ev: InputNumberBoxEvent) => {
+  putMemberCartBySkuIdAPI(ev.index, { count: ev.value })
+}
 </script>
 
 <template>
@@ -37,7 +59,7 @@ onShow(() => {
           <text class="desc">满1件, 即可享受9折优惠</text>
         </view>
         <!-- 滑动操作分区 -->
-        <uni-swipe-action>
+        <uni-swipe-action class="swipe-action">
           <!-- 滑动操作项 -->
           <uni-swipe-action-item v-for="item in cartList" :key="item.skuId" class="cart-swipe">
             <!-- 商品信息 -->
@@ -58,15 +80,20 @@ onShow(() => {
               </navigator>
               <!-- 商品数量 -->
               <view class="count">
-                <text class="text">-</text>
-                <input class="input" type="number" :value="item.count.toString()" />
-                <text class="text">+</text>
+                <!-- 步进器 -->
+                <vk-data-input-number-box
+                  v-model="item.count"
+                  :min="1"
+                  :max="item.stock"
+                  :index="item.skuId"
+                  @change="onChangeCount"
+                />
               </view>
             </view>
             <!-- 右侧删除按钮 -->
             <template #right>
               <view class="cart-swipe-right">
-                <button class="button delete-button">删除</button>
+                <button class="button delete-button" @tap="onDeleteCart(item.skuId)">删除</button>
               </view>
             </template>
           </uni-swipe-action-item>
@@ -140,6 +167,11 @@ onShow(() => {
       background-color: #27ba9b;
       margin-right: 10rpx;
     }
+  }
+
+  // 滑块容器
+  .swipe-action {
+    padding-right: 1rpx;
   }
 
   // 购物车商品

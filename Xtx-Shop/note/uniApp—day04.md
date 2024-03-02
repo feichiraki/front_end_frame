@@ -2179,11 +2179,169 @@ onShow(() => {
 
 #### 3、购物车删除单品
 
+通过侧滑删除购物车的商品，使用 [uni-swipe-action](https://uniapp.dcloud.net.cn/component/uniui/uni-swipe-action.html) 组件实现。
+
+参考效果：
+
+<img src="uniApp—day04.assets/image-20240302202253068.png" alt="image-20240302202253068" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240302202634762.png" alt="image-20240302202634762" style="zoom:67%;" />
+
+##### 3.1 封装删除API
+
+```ts
+/**
+ * 删除/清空购物车单品
+ * @param ids 请求体参数 ids:Skuid集合
+ */
+export const deleteMemberCartAPI = (ids: string[]) => {
+  return request({
+    method: 'DELETE',
+    url: '/member/cart',
+    data: { ids },
+  })
+}
+```
+
+
+
+##### 3.2 实现删除代码
+
+```vue
+<script setup lang="ts">
+// 点击删除按钮
+const onDeleteCart = (skuId: string) => {
+  // 弹窗二次确认
+  uni.showModal({
+    content: '是否删除',
+    success: async (res) => {
+      if (res.confirm) {
+        // 后端删除单品
+        await deleteMemberCartAPI({ ids: [skuId] })
+        // 重新获取列表
+        getCartList()
+      }
+    },
+  })
+}
+</script>
+
+<template>
+  <!-- 右侧删除按钮 -->
+  <template #right>
+    <view class="cart-swipe-right">
+      <button @tap="onDeleteCart(item.skuId)" class="button delete-button">删除</button>
+    </view>
+  </template>
+</template>
+```
+
 
 
 
 
 #### 4、购物车修改单品数量
+
+修改购买数量。
+
+参考效果：
+
+<img src="uniApp—day04.assets/image-20240302222012682.png" alt="image-20240302222012682" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240302222047506.png" alt="image-20240302222047506" style="zoom:67%;" />
+
+##### 4.1 步进器组件 & 类型声明文件
+
+复用 `SKU` 插件中的 **步进器组件** 修改商品数量，补充**类型声明文件**让组件类型更安全。
+
+```ts
+import { Component } from '@uni-helper/uni-app-types'
+
+/** 步进器 */
+export type InputNumberBox = Component<InputNumberBoxProps>
+
+/** 步进器实例 */
+export type InputNumberBoxInstance = InstanceType<InputNumberBox>
+
+/** 步进器属性 */
+export type InputNumberBoxProps = {
+  /** 输入框初始值（默认1） */
+  modelValue: number
+  /** 用户可输入的最小值（默认0） */
+  min: number
+  /** 用户可输入的最大值（默认99999） */
+  max: number
+  /**  步长，每次加或减的值（默认1） */
+  step: number
+  /** 是否禁用操作，包括输入框，加减按钮 */
+  disabled: boolean
+  /** 输入框宽度，单位rpx（默认80） */
+  inputWidth: string | number
+  /**  输入框和按钮的高度，单位rpx（默认50） */
+  inputHeight: string | number
+  /** 输入框和按钮的背景颜色（默认#F2F3F5） */
+  bgColor: string
+  /** 步进器标识符 */
+  index: string
+  /** 输入框内容发生变化时触发 */
+  onChange: (event: InputNumberBoxEvent) => void
+  /** 输入框失去焦点时触发 */
+  onBlur: (event: InputNumberBoxEvent) => void
+  /** 点击增加按钮时触发 */
+  onPlus: (event: InputNumberBoxEvent) => void
+  /** 点击减少按钮时触发 */
+  onMinus: (event: InputNumberBoxEvent) => void
+}
+
+/** 步进器事件对象 */
+export type InputNumberBoxEvent = {
+  /** 输入框当前值 */
+  value: number
+  /** 步进器标识符 */
+  index: string
+}
+
+/** 全局组件类型声明 */
+declare module 'vue' {
+  export interface GlobalComponents {
+    'vk-data-input-number-box': InputNumberBox
+  }
+}
+```
+
+
+
+##### 4.2 封装修改商品数量接口
+
+```ts
+/**
+ * 修改购物车单品
+ * @param skuId SKUID
+ * @param data selected 选中状态 count 商品数量
+ */
+export const putMemberCartBySkuIdAPI = (
+  skuId: string,
+  data: { selected?: boolean; count?: number },
+) => {
+  return request<CartItem>({
+    method: 'PUT',
+    url: `/member/cart/${skuId}`,
+    data,
+  })
+}
+```
+
+
+
+##### 4.3 实现代码
+
+```vue
+
+```
 
 
 

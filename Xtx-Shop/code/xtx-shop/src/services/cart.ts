@@ -22,3 +22,31 @@ export const getMemberCartAPI = () => {
     url: '/member/cart',
   })
 }
+
+/**
+ * 删除/清空购物车单品
+ * @param ids 请求体参数 ids:Skuid集合
+ */
+export const deleteMemberCartAPI = (ids: string[]) => {
+  return request({
+    method: 'DELETE',
+    url: '/member/cart',
+    data: { ids },
+  })
+}
+
+/**
+ * 修改购物车单品
+ * @param skuId SKUID
+ * @param data selected 选中状态 count 商品数量
+ */
+export const putMemberCartBySkuIdAPI = (
+  skuId: string,
+  data: { selected?: boolean; count?: number },
+) => {
+  return request({
+    method: 'PUT',
+    url: `/member/cart/${skuId}`,
+    data,
+  })
+}

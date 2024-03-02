@@ -246,6 +246,10 @@ export default {
       // #ifndef VUE3
       return this.value
       // #endif
+
+      // #ifdef VUE3
+      return this.modelValue
+      // #endif
     },
     getCursorSpacing() {
       // 先将值转为px单位，再转为数值
