@@ -2340,7 +2340,27 @@ export const putMemberCartBySkuIdAPI = (
 ##### 4.3 实现代码
 
 ```vue
+<script setup lang="ts">
+import type { InputNumberBoxEvent } from '@/components/vk-data-input-number-box/vk-data-input-number-box'
 
+// 修改商品数量
+const onChangeCount = (ev: InputNumberBoxEvent) => {
+  putMemberCartBySkuIdAPI(ev.index, { count: ev.value })
+}
+</script>
+
+<template>
+  <!-- 商品数量 -->
+  <view class="count">
+    <vk-data-input-number-box
+      v-model="item.count"
+      :min="1"
+      :max="item.stock"
+      :index="item.skuId"
+      @change="onChangeCount"
+    />
+  </view>
+</template>
 ```
 
 
@@ -2349,14 +2369,226 @@ export const putMemberCartBySkuIdAPI = (
 
 #### 5、购物车修改选中状态
 
+参考效果：
+
+<img src="uniApp—day04.assets/image-20240302231527432.png" alt="image-20240302231527432" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240302231509194.png" alt="image-20240302231509194" style="zoom:67%;" />
+
+##### 5.1 封装全选API
+
+```ts
+/**
+ *购物车全选/取消全选
+ * @param selected 请求体参数 selected 是否选中
+ */
+export const putMemberCartSelectedAPI = (selected: boolean) => {
+  return request({
+    method: 'PUT',
+    url: '/member/cart/selected',
+    data: { selected },
+  })
+}
+```
+
+
+
+##### 5.2 实现代码
+
+```vue
+<script setup lang="ts">
+// 修改选中状态-单品修改
+const onChangeSelected = (item: CartItem) => {
+  // 前端数据更新-是否选中取反
+  item.selected = !item.selected
+  // 后端数据更新
+  putMemberCartBySkuIdAPI(item.skuId, { selected: item.selected })
+}
+
+// 计算全选状态
+const isSelectedAll = computed(() => {
+  return cartList.value.length && cartList.value.every((v) => v.selected)
+})
+
+// 修改选中状态-全选修改
+const onChangeSelectedAll = () => {
+  // 全选状态取反
+  const _isSelectedAll = !isSelectedAll.value
+  // 前端数据更新
+  cartList.value.forEach((item) => {
+    item.selected = _isSelectedAll
+  })
+  // 后端数据更新
+  putMemberCartSelectedAPI({ selected: _isSelectedAll })
+}
+</script>
+
+<template>
+  <!-- 商品信息 -->
+  <view class="goods">
+    <!-- 选中状态 -->
+    <text @tap="onChangeSelected(item)" class="checkbox" :class="{ checked: item.selected }">
+    </text>
+  </view>
+  <!-- 吸底工具栏 -->
+  <view class="toolbar">
+    <text @tap="onChangeSelectedAll" class="all" :class="{ checked: isSelectedAll }">全选</text>
+  </view>
+</template>
+```
+
 
 
 
 
 #### 6、购物车底部结算信息
 
+参考效果：
+
+<img src="uniApp—day04.assets/image-20240302234501984.png" alt="image-20240302234501984" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240302234441501.png" alt="image-20240302234441501" style="zoom:67%;" />
+
+##### 6.1 三个计算
+
+```ts
+// 计算选中单品列表
+const selectedList = computed(() => {
+  return cartList.value.filter((item) => item.selected)
+})
+
+// 计算选中总件数
+const selectedTotal = computed(() => {
+  return selectedList.value.reduce((sum, item) => sum + item.count, 0)
+})
+
+// 计算选中商品金额
+const selectedAmount = computed(() => {
+  return selectedList.value.reduce((p, c) => p + c.count * c.price, 0)
+})
+```
+
+
+
+##### 6.2 结算按钮交互
+
+```ts
+// 结算
+const onPayment = () => {
+  if (selectedTotal.value === 0) {
+    uni.showToast({
+      icon: 'none',
+      title: '你还没有选择商品哦!',
+    })
+  }
+  // 跳转到结算页
+  uni.navigateTo({ url: '/pagesOrder/create/create' })
+}
+```
+
+
+
+##### 6.3 渲染 & 绑定
+
+```vue
+<!-- 吸底工具栏 -->
+<view class="toolbar">
+    <text class="all" @tap="onChangeAll" :class="{ checked: isSelectAll }">全选</text>
+    <text class="text">合计:</text>
+    <text class="amount">{{ selectedAmount }}</text>
+    <view class="button-grounp">
+        <view class="button payment-button" @tap="onPayment" :class="{ disabled: false }">
+            去结算({{ selectedTotal }})
+        </view>
+    </view>
+</view>
+```
+
 
 
 
 
 #### 7、购物车两个购物车页面
+
+> tabBar页：小程序跳转到 tabBar 页面时，会关闭其他所有非 tabBar 页面，所以小程序的 `tabBar 页没有后退按钮`。
+
+为了解决小程序 [tabBar 页面限制](https://developers.weixin.qq.com/miniprogram/dev/api/route/wx.switchTab.html) 导致无法返回上一页的问题，将购物车业务独立为组件，使其既可从底部 tabBar 访问，又可在商品详情页中**跳转并返回**。
+
+这样就需要 **两个购物车页面** 实现该功能，其中一个页面为 tabBar 页，另一个为普通页。
+
+参考效果：
+
+<img src="uniApp—day04.assets/image-20240303000033411.png" alt="image-20240303000033411" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day04.assets/image-20240302235912287.png" alt="image-20240302235912287" style="zoom:67%;" />
+
+目录结构：
+
+```
+pages/cart
+├── components
+│   └── CartMain.vue ...................................... 购物车业务组件
+├── cart2.vue ............................................. 普通页
+└── cart.vue   ............................................ TabBar页
+```
+
+
+
+##### 7.1 购物车业务封装成组件
+
+将原本存放在`cart.vue`中的所有代码都copy到`CartMain.vue`中进行封装。
+
+
+
+##### 7.2 两个页面的代码实现
+
+新建两个组件，引入CartMain组件。
+
+`cart2.vue` 和 ``cart.vue``
+
+```vue
+<script lang="ts" setup>
+import CartMain from './components/CartMain.vue'
+</script>
+
+<template>
+  <CartMain />
+</template>
+```
+
+
+
+##### 7.3 pages.json添加路由
+
+```json
+{
+    "pages":[
+        ...
+        {
+            "path": "pages/cart/cart2",
+            "style": {
+                "navigationBarTitleText": "购物车"
+            }
+        },
+    ]
+}
+```
+
+`goods/index.vue`：添加路由跳转
+
+```vue
+<navigator class="icons-button" url="/pages/cart/cart2" open-type="navigate">
+    <text class="icon-cart"></text>购物车
+</navigator>
+```
+
+> 未完功能：
+>
+> 1. 实现购物车猜你喜欢分页加载
+> 2.  底部工具栏栏安全区适配
