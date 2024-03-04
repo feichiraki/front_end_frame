@@ -1,7 +1,24 @@
 <script setup lang="ts">
+import type { AddressItem } from '@/types/address'
+import { ref } from 'vue'
+const props = defineProps<{
+  addressList: AddressItem[]
+}>()
 const emit = defineEmits<{
   (event: 'close'): void
+  (event: 'changeAddress', address: AddressItem): void
 }>()
+
+// 选中地址
+let addressItem = props.addressList.find((item) => item.isDefault)
+const activeAddress = ref(addressItem!)
+const changeAddress = (item: AddressItem) => {
+  activeAddress.value = item
+}
+
+const gotoAddAddress = () => {
+  uni.navigateTo({ url: '/pagesMember/address-form/index' })
+}
 </script>
 
 <template>
@@ -12,25 +29,22 @@ const emit = defineEmits<{
     <view class="title">配送至</view>
     <!-- 内容 -->
     <view class="content">
-      <view class="item">
-        <view class="user">李明 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-checked"></text>
-      </view>
-      <view class="item">
-        <view class="user">王东 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-ring"></text>
-      </view>
-      <view class="item">
-        <view class="user">张三 13824686868</view>
-        <view class="address">北京市朝阳区孙河安平北街6号院</view>
-        <text class="icon icon-ring"></text>
+      <view
+        class="item"
+        v-for="item in props.addressList"
+        :key="item.id"
+        @tap="changeAddress(item)"
+      >
+        <view class="user">{{ item.receiver }} {{ item.contact }}</view>
+        <view class="address">{{ item.fullLocation + item.address }}</view>
+        <text class="icon icon-checked" :class="{ selected: activeAddress!.id === item.id }"></text>
       </view>
     </view>
     <view class="footer">
-      <view class="button primary"> 新建地址 </view>
-      <view v-if="false" class="button primary">确定</view>
+      <view class="button primary" @tap="gotoAddAddress"> 新建地址 </view>
+      <view v-if="addressList" class="button primary" @tap="emit('changeAddress', activeAddress)"
+        >确定</view
+      >
     </view>
   </view>
 </template>
@@ -80,7 +94,7 @@ const emit = defineEmits<{
     top: 50%;
     right: 0;
   }
-  .icon-checked {
+  .selected {
     color: #27ba9b;
   }
   .icon-ring {

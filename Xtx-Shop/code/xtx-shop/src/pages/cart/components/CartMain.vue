@@ -102,7 +102,7 @@ const onPayment = () => {
     })
   }
   // 跳转到结算页
-  uni.navigateTo({ url: '/pagesOrder/create/create' })
+  uni.navigateTo({ url: '/pagesOrder/create/index' })
 }
 
 // 获取屏幕边界到安全区域距离

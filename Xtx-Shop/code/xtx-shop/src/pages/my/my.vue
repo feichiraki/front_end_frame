@@ -25,12 +25,7 @@ const { guessRef, onScrolltolower } = useGuessList()
       <!-- 情况1：已登录 -->
       <view class="overview" v-if="memberStore.profile">
         <navigator url="/pagesMember/profile/profile" hover-class="none">
-          <!-- <image
-            class="avatar"
-            mode="aspectFill"
-            src="https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/avatar_3.jpg"
-          ></image> -->
-
+          <!-- https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/avatar_3.jpg" -->
           <image class="avatar" mode="aspectFill" :src="memberStore.profile?.avatar"></image>
         </navigator>
         <view class="meta">

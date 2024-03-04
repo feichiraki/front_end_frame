@@ -13,6 +13,7 @@ import type {
   SkuPopupEvent,
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
 import { postMemberCart } from '@/services/cart'
+import type { AddressItem } from '@/types/address'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -114,6 +115,26 @@ const onAddCart = async (ev: SkuPopupEvent) => {
   // 关闭Sku弹窗
   isShowSku.value = false
 }
+
+// 立即购买事件 => 填写订单页
+const onBuyNow = (ev: SkuPopupEvent) => {
+  // 从商品详情页的【立即购买事件】中收集两个必要参数，跳转填写订单页并传递页面参数。
+  uni.navigateTo({
+    url: `/pagesOrder/create/index?skuId=${ev._id}&count=${ev.buy_num}&addressId=${addressId}`,
+  })
+  // 关闭 SKU 组件
+  isShowSku.value = false
+}
+
+// 选中收获地址栏逻辑
+const selectedAddress = ref('')
+let addressId = ''
+const getAddress = (item: AddressItem) => {
+  selectedAddress.value = item.fullLocation + item.address
+  addressId = item.id
+  // 关闭弹窗
+  popup.value?.close()
+}
 </script>
 
 <template>
@@ -132,6 +153,7 @@ const onAddCart = async (ev: SkuPopupEvent) => {
         backgroundColor: '#E9F8F5',
       }"
       @add-cart="onAddCart"
+      @buy-now="onBuyNow"
     />
     <scroll-view scroll-y class="viewport">
       <!-- 基本信息 -->
@@ -168,7 +190,7 @@ const onAddCart = async (ev: SkuPopupEvent) => {
           </view>
           <view class="item arrow" @tap="openPopup('address')">
             <text class="label">送至</text>
-            <text class="text ellipsis"> 请选择收获地址 </text>
+            <text class="text ellipsis"> {{ selectedAddress || '请选择收获地址' }} </text>
           </view>
           <view class="item arrow" @tap="openPopup('service')">
             <text class="label">服务</text>
@@ -243,7 +265,12 @@ const onAddCart = async (ev: SkuPopupEvent) => {
 
     <!-- uni-popup -> 弹出层 -->
     <uni-popup ref="popup" type="bottom" background-color="#fff">
-      <AddressPanel v-if="popupName === 'address'" @close="popup?.close()" />
+      <AddressPanel
+        :addressList="goodsDetail.userAddresses"
+        v-if="popupName === 'address'"
+        @close="popup?.close()"
+        @change-address="getAddress"
+      />
       <ServicePanel v-if="popupName === 'service'" @close="popup?.close()" />
     </uni-popup>
   </template>
