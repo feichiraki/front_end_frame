@@ -1705,3 +1705,333 @@ onLoad(() => {
 </template>
 ```
 
+
+
+
+
+#### 5、待付款 - 倒计时
+
+通过 uni-ui 组件库的 [uni-countdown](https://uniapp.dcloud.net.cn/component/uniui/uni-countdown.html) 实现倒计时。
+
+实现步骤：
+
+<img src="uniApp—day05.assets/image-20240304235941242.png" alt="image-20240304235941242" style="zoom:67%;" />
+
+实现代码：
+
+```vue
+<script setup lang="ts">
+// 倒计时结束事件
+const onTimeup = () => {
+  // 修改订单状态为已取消
+  order.value!.orderState = OrderState.YiQuXiao
+}
+</script>
+
+<template>
+  <!-- 待付款状态:展示去支付按钮和倒计时 -->
+  <template v-if="order.orderState === OrderState.DaiFuKuan">
+    <view class="status icon-clock">等待付款</view>
+    <view class="tips">
+      <text class="money">应付金额: ¥ 99.00</text>
+      <text class="time">支付剩余</text>
+      <!-- 倒计时组件 -->
+      <uni-countdown
+        :second="order.countdown"
+        color="#fff"
+        splitor-color="#fff"
+        :show-day="false"
+        :show-colon="false"
+        @timeup="onTimeup"
+      />
+    </view>
+    <view class="button">去支付</view>
+  </template>
+</template>
+```
+
+
+
+
+
+#### 6、订单支付
+
+订单支付其实就是根据订单号查询到支付信息，在小程序中调用微信支付的 API 而已。
+
+##### 6.1 [微信支付说明](https://megasu.gitee.io/uni-app-shop-note/rabbit-shop/order.html#微信支付说明)
+
+1. 由于微信支付的限制，仅 **appid** 为 `wx26729f20b9efae3a` 的开发者才能调用该接口。此外，开发者还需要微信授权登录。
+2. 对于其他开发者，可以使用**模拟支付接口**进行开发测试，调用后，订单状态将自动更新为`已支付` 。
+
+###### **调用接口**
+
+- 生产环境：调用正式接口，获取微信支付参数 + 发起微信支付
+- 开发环境：调用模拟接口，通过模拟支付，修改订单状态为已支付
+
+> 注意事项：开发环境的模拟订单支付，更新订单状态为待发货，仅开发和学习使用。
+
+<img src="uniApp—day05.assets/image-20240305000932580.png" alt="image-20240305000932580" style="zoom:67%;" />
+
+`services/pay.ts`
+
+```ts
+import { request } from '@/utils/request'
+
+/**
+ * 获取微信支付参数
+ * @param data orderId 订单id
+ */
+export const getPayWxPayMiniPayAPI = (data: { orderId: string }) => {
+  return request<WechatMiniprogram.RequestPaymentOption>({
+    method: 'GET',
+    url: '/pay/wxPay/miniPay',
+    data,
+  })
+}
+
+/**
+ * 模拟支付-内测版
+ * @param data orderId 订单id
+ */
+export const getPayMockAPI = (data: { orderId: string }) => {
+  return request({
+    method: 'GET',
+    url: '/pay/mock',
+    data,
+  })
+}
+```
+
+
+
+##### 6.2 支付成功页
+
+主要用于展示支付结果。
+
+###### 静态结构
+
+`src/pagesOrder/payment/index.vue`
+
+```vue
+<script setup lang="ts">
+import { useGuessList } from '@/composables/index'
+
+// 获取页面参数
+const query = defineProps<{
+  id: string
+}>()
+
+// 猜你喜欢
+const { guessRef, onScrolltolower } = useGuessList()
+</script>
+
+<template>
+  <scroll-view class="viewport" scroll-y @scrolltolower="onScrolltolower">
+    <!-- 订单状态 -->
+    <view class="overview">
+      <view class="status icon-checked">支付成功</view>
+      <view class="buttons">
+        <navigator
+          hover-class="none"
+          class="button navigator"
+          url="/pages/index/index"
+          open-type="switchTab"
+        >
+          返回首页
+        </navigator>
+        <navigator
+          hover-class="none"
+          class="button navigator"
+          :url="`/pagesOrder/detail/detail?id=${query.id}`"
+          open-type="redirect"
+        >
+          查看订单
+        </navigator>
+      </view>
+    </view>
+
+    <!-- 猜你喜欢 -->
+    <XtxGuess ref="guessRef" />
+  </scroll-view>
+</template>
+
+<style lang="scss">
+page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewport {
+  background-color: #f7f7f8;
+}
+
+.overview {
+  line-height: 1;
+  padding: 50rpx 0;
+  color: #fff;
+  background-color: #27ba9b;
+
+  .status {
+    font-size: 36rpx;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .status::before {
+    display: block;
+    font-size: 110rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .buttons {
+    height: 60rpx;
+    line-height: 60rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 60rpx;
+  }
+
+  .button {
+    text-align: center;
+    margin: 0 10rpx;
+    font-size: 28rpx;
+    color: #fff;
+
+    &:first-child {
+      width: 200rpx;
+      border-radius: 64rpx;
+      border: 1rpx solid #fff;
+    }
+  }
+}
+</style>
+```
+
+
+
+
+
+#### 7、待发货—模拟发货
+
+仅在订单状态为待发货时，可模拟发货，调用后订单状态修改为待收货，包含模拟物流。
+
+**仅在开发期间使用**，项目上线后应该是由商家发货。
+
+参考效果：
+
+<img src="uniApp—day05.assets/image-20240305213441401.png" alt="image-20240305213441401" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day05.assets/image-20240305213513113.png" alt="image-20240305213513113" style="zoom:80%;" />
+
+##### 7.1 封装请求API
+
+```ts
+// order.ts
+/**
+ * 模拟发货-内测版
+ * @description 在DEV环境下使用，仅在订单状态为待发货时，可模拟发货，调用后订单状态修改为待收货，包含模拟物流。
+ * @param id 订单id
+ */
+export const getMemberOrderConsignmentByIdAPI = (id: string) => {
+  return request({
+    method: 'GET',
+    url: `/member/order/consignment/${id}`,
+  })
+}
+```
+
+
+
+##### 7.2 实现代码
+
+```vue
+<script setup lang="ts">
+// 是否为开发环境
+const isDev = import.meta.env.DEV
+// 模拟发货
+const onOrderSend = async () => {
+  if (isDev) {
+    await getMemberOrderConsignmentByIdAPI(query.id)
+    uni.showToast({ icon: 'success', title: '模拟发货完成' })
+    // 主动更新订单状态
+    order.value!.orderState = OrderState.DaiShouHuo
+  }
+}
+</script>
+
+<template>
+  <!-- 待发货状态：模拟发货,开发期间使用,用于修改订单状态为已发货 -->
+  <view v-if="isDev && order.orderState == OrderState.DaiFaHuo" @tap="onOrderSend" class="button">
+    模拟发货
+  </view>
+</template>
+```
+
+
+
+
+
+#### 8、待收货—确认收货
+
+点击确认收货时需二次确认，提示文案：**为保障您的权益，请收到货并确认无误后，再确认收货**。
+
+参考效果：
+
+<img src="uniApp—day05.assets/image-20240305214012198.png" alt="image-20240305214012198" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day05.assets/image-20240305214059195.png" alt="image-20240305214059195" style="zoom:67%;" />
+
+##### 8.1 封装请求API
+
+```ts
+// order.ts
+/**
+ * 确认收货
+ * @description 仅在订单状态为待收货时，可确认收货。
+ * @param id 订单id
+ */
+export const putMemberOrderReceiptByIdAPI = (id: string) => {
+  return request<OrderResult>({
+    method: 'PUT',
+    url: `/member/order/${id}/receipt`,
+  })
+}
+```
+
+
+
+##### 8.2 实现代码
+
+```vue
+<script setup lang="ts">
+// 确认收货
+const onOrderConfirm = () => {
+  // 二次确认弹窗
+  uni.showModal({
+    content: '为保障您的权益，请收到货并确认无误后，再确认收货',
+    success: async (success) => {
+      if (success.confirm) {
+        const res = await putMemberOrderReceiptByIdAPI(query.id)
+        // 更新订单状态
+        order.value = res.result
+      }
+    },
+  })
+}
+</script>
+
+<template>
+  <!-- 待收货状态: 展示确认收货按钮 -->
+  <view v-if="order.orderState === OrderState.DaiShouHuo" @tap="onOrderConfirm" class="button">
+    确认收货
+  </view>
+</template>
+```
+
