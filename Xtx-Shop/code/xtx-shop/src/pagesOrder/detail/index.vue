@@ -2,12 +2,15 @@
 import { useGuessList } from '@/composables/index'
 import { OrderState, orderStateList } from '@/services/constants'
 import {
+  deleteMemberOrderAPI,
   getMemberOrderByIdAPI,
+  getMemberOrderCancelByIdAPI,
   getMemberOrderConsignmentByIdAPI,
+  getMemberOrderLogisticsByIdAPI,
   putMemberOrderReceiptByIdAPI,
 } from '@/services/order'
 import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
-import type { OrderResult } from '@/types/order'
+import type { LogisticItem, OrderResult } from '@/types/order'
 import { onLoad, onReady } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 
@@ -77,6 +80,14 @@ const orderDetail = ref<OrderResult>()
 const getOrderDetail = async () => {
   const res = await getMemberOrderByIdAPI(query.id)
   orderDetail.value = res.result
+  // 判断订单状态，如果是待收货，待评价，已完成时获取 【物流信息】
+  if (
+    [OrderState.DaiShouHuo, OrderState.DaiPingJia, OrderState.YiWanCheng].includes(
+      orderDetail.value!.orderState,
+    )
+  ) {
+    getLogisticList()
+  }
 }
 
 onLoad(() => {
@@ -127,6 +138,39 @@ const onOrderFinish = async () => {
       }
     },
   })
+}
+
+// 获取物流信息
+const logisticList = ref<LogisticItem[]>([])
+const getLogisticList = async () => {
+  const res = await getMemberOrderLogisticsByIdAPI(query.id)
+  logisticList.value = res.result.list
+}
+
+// 删除订单
+const onDeleteOrder = () => {
+  // 点击删除时需要二次确认
+  uni.showModal({
+    content: '确定删除该订单吗？',
+    success: async (success) => {
+      if (success.confirm) {
+        await deleteMemberOrderAPI({ ids: [query.id] })
+        // 删除成功后，跳转到订单列表页
+        uni.redirectTo({ url: '/pagesOrder/list/index' })
+      }
+    },
+  })
+}
+
+// 取消订单
+const onCancelOrder = async () => {
+  // 调用接口
+  await getMemberOrderCancelByIdAPI(query.id, { cancelReason: reason.value })
+  uni.showToast({ icon: 'success', title: '取消订单成功' })
+  setTimeout(() => {
+    // 跳转到订单列表页
+    uni.redirectTo({ url: '/pagesOrder/list/index' })
+  }, 500)
 }
 </script>
 
@@ -199,11 +243,11 @@ const onOrderFinish = async () => {
       <!-- 配送状态 -->
       <view class="shipment">
         <!-- 订单物流信息 -->
-        <view v-for="item in 1" :key="item" class="item">
+        <view v-for="item in logisticList" :key="item.id" class="item">
           <view class="message">
-            您已在{{ '长沙市星沙街道' }}完成取件，感谢使用菜鸟驿站，期待再次为您服务。
+            {{ item.text }}
           </view>
-          <view class="date"> 2024-04-14 13:14:20 </view>
+          <view class="date"> {{ item.time }} </view>
         </view>
         <!-- 用户收货地址 -->
         <view class="locate">
@@ -278,8 +322,8 @@ const onOrderFinish = async () => {
       <view class="toolbar-height" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }"></view>
       <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
         <!-- 待付款状态:展示支付按钮 -->
-        <template v-if="true">
-          <view class="button primary"> 去支付 </view>
+        <template v-if="orderDetail.orderState === OrderState.DaiFuKuan">
+          <view class="button primary" @tap="onOrderPay"> 去支付 </view>
           <view class="button" @tap="popup?.open?.()"> 取消订单 </view>
         </template>
         <!-- 其他订单状态:按需展示按钮 -->
@@ -292,11 +336,21 @@ const onOrderFinish = async () => {
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view class="button primary"> 确认收货 </view>
+          <view class="button primary" v-if="orderDetail.orderState === OrderState.DaiShouHuo">
+            确认收货
+          </view>
           <!-- 待评价状态: 展示去评价 -->
-          <view class="button"> 去评价 </view>
+          <view class="button" v-if="orderDetail.orderState === OrderState.DaiPingJia">
+            去评价
+          </view>
           <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-          <view class="button delete"> 删除订单 </view>
+          <view
+            class="button delete"
+            @tap="onDeleteOrder"
+            v-if="orderDetail.orderState >= OrderState.DaiPingJia"
+          >
+            删除订单
+          </view>
         </template>
       </view>
     </template>
@@ -318,7 +372,7 @@ const onOrderFinish = async () => {
       </view>
       <view class="footer">
         <view class="button" @tap="popup?.close?.()">取消</view>
-        <view class="button primary">确认</view>
+        <view class="button primary" @tap="onCancelOrder">确认</view>
       </view>
     </view>
   </uni-popup>
@@ -673,7 +727,12 @@ page {
   }
 
   .delete {
+    color: #cf4444;
     order: 4;
+  }
+  .delete:hover {
+    border-color: #cf4444;
+    background-color: #f4cfcf;
   }
 
   .button {

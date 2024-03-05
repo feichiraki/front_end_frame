@@ -2035,3 +2035,256 @@ const onOrderConfirm = () => {
 </template>
 ```
 
+
+
+
+
+#### 9、订单物流
+
+仅在订单状态为**待收货，待评价，已完成**时，可获取物流信息。
+
+参考效果：
+
+<img src="uniApp—day05.assets/image-20240305220600717.png" alt="image-20240305220600717" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day05.assets/image-20240305220615802.png" alt="image-20240305220615802" style="zoom:67%;" />
+
+##### 9.1 封装请求API
+
+类型声明 `order.d.ts`
+
+```ts
+/** 物流信息 返回值类型 */
+export type OrderLogisticResult = {
+  /** 快递公司 */
+  company: {
+    /** 公司名称 */
+    name: string
+    /** 快递编号 */
+    number: string
+    /** 联系电话 */
+    tel: string
+  }
+  /** 商品件数 */
+  count: number
+  /** 物流日志 */
+  list: LogisticItem[]
+}
+
+/** 物流日志 */
+export type LogisticItem = {
+  /** 信息ID */
+  id: string
+  /** 信息文字 */
+  text: string
+  /** 时间 */
+  time: string
+}
+```
+
+封装API `order.ts`
+
+```ts
+/**
+ * 获取订单物流
+ * @description 仅在订单状态为待收货，待评价，已完成时，可获取物流信息。
+ * @param id 订单id
+ */
+export const getMemberOrderLogisticsByIdAPI = (id: string) => {
+  return request<OrderLogisticResult>({
+    method: 'GET',
+    url: `/member/order/${id}/logistics`,
+  })
+}
+```
+
+
+
+##### 9.2 实现代码
+
+```vue
+<script setup lang="ts">
+    // 获取订单详情
+    const orderDetail = ref<OrderResult>()
+    const getOrderDetail = async () => {
+        const res = await getMemberOrderByIdAPI(query.id)
+        orderDetail.value = res.result
+        // 判断订单状态，如果是待收货，待评价，已完成时获取 【物流信息】
+        if (
+            [OrderState.DaiShouHuo, OrderState.DaiPingJia, OrderState.YiWanCheng].includes(
+                orderDetail.value!.orderState,
+            )
+        ) {
+            getLogisticList()
+        }
+    }
+    ...
+    // 获取物流信息
+    const logisticList = ref<LogisticItem[]>([])
+    const getLogisticList = async () => {
+        const res = await getMemberOrderLogisticsByIdAPI(query.id)
+        logisticList.value = res.result.list
+    }
+</script>
+<template>
+    <!-- 订单物流信息 -->
+    <view v-for="item in logisticList" :key="item.id" class="item">
+        <view class="message">
+            {{ item.text }}
+        </view>
+        <view class="date"> {{ item.time }} </view>
+    </view>
+</template>
+```
+
+
+
+#### 10、删除订单
+
+仅在订单状态为**待评价，已完成，已取消**时，可删除订单。
+
+参考效果：
+
+<img src="uniApp—day05.assets/image-20240306003346388.png" alt="image-20240306003346388" style="zoom:67%;" />
+
+实现步骤：
+
+<img src="uniApp—day05.assets/image-20240306003324953.png" alt="image-20240306003324953" style="zoom:67%;" />
+
+
+
+##### 10.1 封装请求API
+
+```ts
+/**
+ * 删除订单
+ * @description 仅在订单状态为待评价，已完成，已取消时，可删除订单。
+ * @param data ids 订单集合
+ */
+export const deleteMemberOrderAPI = (data: { ids: string[] }) => {
+  return request({
+    method: 'DELETE',
+    url: `/member/order`,
+    data,
+  })
+}
+```
+
+
+
+##### 10.2 实现代码
+
+```vue
+<script setup lang="ts">
+    // 删除订单
+    const onDeleteOrder = () => {
+        // 点击删除时需要二次确认
+        uni.showModal({
+            content: '确定删除该订单吗？',
+            success: async (success) => {
+                if (success.confirm) {
+                    await deleteMemberOrderAPI({ ids: [query.id] })
+                    // 删除成功后，跳转到订单列表页
+                    uni.redirectTo({ url: '/pagesOrder/list/index' })
+                }
+            },
+        })
+    }
+</script>
+<template>
+<!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
+<view
+      class="button delete"
+      @tap="onDeleteOrder"
+      v-if="orderDetail.orderState >= OrderState.DaiPingJia"
+      >
+    删除订单
+    </view>
+</template>
+```
+
+
+
+
+
+#### 11、取消订单
+
+仅在订单状态为**待付款**时，可取消订单。
+
+实现步骤：
+
+1. 封装请求API。
+2. 调用请求接口，返回到订单列表页。
+
+##### 11.1 封装请求API
+
+```ts
+// order.ts
+/**
+ * 取消订单
+ * @description 仅在订单状态为待付款时，可取消订单。
+ * @param id 订单id
+ * @param data cancelReason 取消理由
+ */
+export const getMemberOrderCancelByIdAPI = (id: string, data: { cancelReason: string }) => {
+  return request<OrderResult>({
+    method: 'PUT',
+    url: `/member/order/${id}/cancel`,
+    data,
+  })
+}
+```
+
+
+
+##### 11.2 实现代码
+
+```vue
+<script setup lang="ts">
+    // 取消订单
+    const onCancelOrder = async () => {
+        // 调用接口
+        await getMemberOrderCancelByIdAPI(query.id, { cancelReason: reason.value })
+        uni.showToast({ icon: 'success', title: '取消订单成功' })
+        setTimeout(() => {
+            // 跳转到订单列表页
+            uni.redirectTo({ url: '/pagesOrder/list/index' })
+        }, 500)
+    }
+</script>
+<template>
+  <!-- 取消订单弹窗 -->
+  <uni-popup ref="popup" type="bottom" background-color="#fff">
+    <view class="popup-root">
+      <view class="title">订单取消</view>
+      <view class="description">
+        <view class="tips">请选择取消订单的原因：</view>
+        <view class="cell" v-for="item in reasonList" :key="item" @tap="reason = item">
+          <text class="text">{{ item }}</text>
+          <text class="icon" :class="{ checked: item === reason }"></text>
+        </view>
+      </view>
+      <view class="footer">
+        <view class="button" @tap="popup?.close?.()">取消</view>
+        <view class="button primary" @tap="onCancelOrder">确认</view>
+      </view>
+    </view>
+  </uni-popup>
+</template>
+```
+
+
+
+
+
+```vue
+<script setup lang="ts">
+	
+</script>
+<template>
+
+</template>
+```
+
