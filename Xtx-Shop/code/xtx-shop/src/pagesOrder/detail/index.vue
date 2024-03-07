@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGuessList } from '@/composables/index'
+import { useGuessList } from '@/composables/useGuess'
 import { OrderState, orderStateList } from '@/services/constants'
 import {
   deleteMemberOrderAPI,
@@ -110,7 +110,6 @@ const onOrderPay = async () => {
     const res = await getPayWxPayMiniPayAPI({ orderId: query.id })
     wx.requestPayment(res.result)
   }
-
   // 关闭当前页，再跳转支付结果页
   uni.redirectTo({ url: `/pagesOrder/payment/index?id=${query.id}` })
 }
@@ -820,3 +819,4 @@ page {
   }
 }
 </style>
+@/composables/useGuess

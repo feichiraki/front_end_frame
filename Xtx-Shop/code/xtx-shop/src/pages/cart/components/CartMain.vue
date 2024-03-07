@@ -187,7 +187,7 @@ const onScrolltolower = () => {
       >
         <text class="all" @tap="onChangeAll" :class="{ checked: isSelectAll }">全选</text>
         <text class="text">合计:</text>
-        <text class="amount">{{ selectedAmount }}</text>
+        <text class="amount">{{ selectedAmount.toFixed(2) }}</text>
         <view class="button-grounp">
           <view class="button payment-button" @tap="onPayment" :class="{ disabled: false }">
             去结算({{ selectedTotal }})

@@ -7,7 +7,7 @@ import CustomNavbar from './components/CustomNavbar.vue'
 import CategoryPanel from './components/CategoryPanel.vue'
 import HotPanel from './components/HotPanel.vue'
 import PageSkeleton from './components/PageSkeleton.vue'
-import { useGuessList } from '@/composables/index'
+import { useGuessList } from '@/composables/useGuess'
 
 // 获取轮播图数据
 const bannerList = ref<BannerItem[]>([])
@@ -99,3 +99,4 @@ page {
   flex: 1;
 }
 </style>
+@/composables/useGuess

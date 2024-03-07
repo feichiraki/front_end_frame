@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGuessList } from '@/composables/index'
+import { useGuessList } from '@/composables/useGuess'
 
 // 获取页面参数
 const query = defineProps<{
