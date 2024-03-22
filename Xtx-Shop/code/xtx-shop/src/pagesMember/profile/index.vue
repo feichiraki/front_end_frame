@@ -25,6 +25,8 @@ onLoad(() => {
 const onAvatarChange = () => {
   // 处理上传头像的逻辑
   // 调用拍照/选择图片的API
+
+  // #ifdef MP-WEIXIN
   uni.chooseMedia({
     // 文件个数
     count: 1,
@@ -35,22 +37,37 @@ const onAvatarChange = () => {
       console.log(res)
       // 本地路径
       const { tempFilePath } = res.tempFiles[0]
-      // 文件上传
-      uni.uploadFile({
-        url: '/member/profile/avatar',
-        name: 'file',
-        filePath: tempFilePath,
-        success: (res) => {
-          if (res.statusCode === 200) {
-            const avatar = JSON.parse(res.data).result.avatar
-            profile.value!.avatar = avatar
-            memberStore.profile!.avatar = avatar
-            uni.showToast({ icon: 'success', title: '头像上传成功' })
-          } else {
-            uni.showToast({ title: '头像上传失败', icon: 'error' })
-          }
-        },
-      })
+      uploadFile(tempFilePath)
+    },
+  })
+  // #endif
+
+  // #ifdef H5 || APP-PLUS
+  uni.chooseImage({
+    count: 1,
+    success: (res) => {
+      const tempFilePath = res.tempFilePaths[0]
+      uploadFile(tempFilePath)
+    },
+  })
+  // #endif
+}
+
+const uploadFile = (tempFilePath: string) => {
+  // 文件上传
+  uni.uploadFile({
+    url: '/member/profile/avatar',
+    name: 'file',
+    filePath: tempFilePath,
+    success: (res) => {
+      if (res.statusCode === 200) {
+        const avatar = JSON.parse(res.data).result.avatar
+        profile.value!.avatar = avatar
+        memberStore.profile!.avatar = avatar
+        uni.showToast({ icon: 'success', title: '头像上传成功' })
+      } else {
+        uni.showToast({ title: '头像上传失败', icon: 'error' })
+      }
     },
   })
 }

@@ -29,9 +29,6 @@ onShow(() => {
   if (memberStore.profile) {
     getCartList()
   }
-  const page = getCurrentPages()
-  url.value = page[page.length - 1].route!
-  console.log(url.value)
 })
 
 // 滑块删除购物车
@@ -107,7 +104,7 @@ const onPayment = () => {
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
-const url = ref('')
+const url = ref<string | undefined>('')
 
 // 猜你喜欢下拉数据刷新
 const guessRef = ref<XtxGuessInstance>()
@@ -182,8 +179,9 @@ const onScrolltolower = () => {
       </view>
       <!-- 吸底工具栏 -->
       <view
+        v-if="cartList.length"
         class="toolbar"
-        :style="url === 'pages/cart/cart2' ? { paddingBottom: safeAreaInsets?.bottom + 'px' } : ''"
+        :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }"
       >
         <text class="all" @tap="onChangeAll" :class="{ checked: isSelectAll }">全选</text>
         <text class="text">合计:</text>

@@ -73,6 +73,7 @@ const OnRefresherrefresh = async () => {
     scroll-y
   >
     <PageSkeleton v-if="isLoading" />
+
     <template v-else>
       <!-- 轮播图 -->
       <XtxSwiper :list="bannerList" />
@@ -87,6 +88,9 @@ const OnRefresherrefresh = async () => {
 </template>
 
 <style lang="scss">
+/* #ifdef APP-PLUS */
+#app,
+/* #endif */
 // 小程序页面根标签是 page
 page {
   display: flex;
@@ -99,4 +103,3 @@ page {
   flex: 1;
 }
 </style>
-@/composables/useGuess

@@ -190,7 +190,9 @@ const getAddress = (item: AddressItem) => {
           </view>
           <view class="item arrow" @tap="openPopup('address')">
             <text class="label">送至</text>
-            <text class="text ellipsis"> {{ selectedAddress || '请选择收获地址' }} </text>
+            <text class="text ellipsis">
+              {{ selectedAddress || '请选择收获地址' }}
+            </text>
           </view>
           <view class="item arrow" @tap="openPopup('service')">
             <text class="label">服务</text>
@@ -250,9 +252,11 @@ const getAddress = (item: AddressItem) => {
     <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
       <view class="icons">
         <button class="icons-button"><text class="icon-heart"></text>收藏</button>
+        <!-- #ifdef MP-WEIXIN -->
         <button class="icons-button" open-type="contact">
           <text class="icon-handset"></text>客服
         </button>
+        <!-- #endif -->
         <navigator class="icons-button" url="/pages/cart/cart2" open-type="navigate">
           <text class="icon-cart"></text>购物车
         </navigator>
@@ -278,6 +282,12 @@ const getAddress = (item: AddressItem) => {
 </template>
 
 <style lang="scss">
+/* #ifdef H5 || APP-PLUS */
+.toolbar .icons a.navigator-wrap {
+  flex: 1;
+}
+/* #endif */
+
 page {
   height: 100%;
   overflow: hidden;

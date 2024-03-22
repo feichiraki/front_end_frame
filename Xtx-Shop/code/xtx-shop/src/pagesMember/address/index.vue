@@ -62,6 +62,7 @@ const changeSelectAddress = (address: AddressItem) => {
                 hover-class="none"
                 :url="`/pagesMember/address-form/index?id=${item.id}`"
                 @tap.stop="() => {}"
+                @tap.prevent="() => {}"
               >
                 修改
               </navigator>
