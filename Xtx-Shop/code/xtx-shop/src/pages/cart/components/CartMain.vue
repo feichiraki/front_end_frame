@@ -171,7 +171,7 @@ const onScrolltolower = () => {
       </view>
       <!-- 购物车空状态 -->
       <view class="cart-blank" v-else>
-        <image src="/static/images/blank_cart.png" class="image" />
+        <image src="/static/images/cart_blank.png" class="image" />
         <text class="text">购物车还是空的，快来挑选好货吧</text>
         <navigator open-type="switchTab" url="/pages/index/index" hover-class="none">
           <button class="button">去首页看看</button>
@@ -240,7 +240,8 @@ const onScrolltolower = () => {
       padding: 7rpx 15rpx 5rpx;
       border-radius: 4rpx;
       font-size: 24rpx;
-      background-color: #27ba9b;
+      // background-color: #27ba9b;
+      background-color: #ff8a34;
       margin-right: 10rpx;
     }
   }
@@ -282,7 +283,7 @@ const onScrolltolower = () => {
 
       &.checked::before {
         content: '\e6cc';
-        color: #27ba9b;
+        color: #ff8a34;
       }
     }
 
@@ -410,7 +411,7 @@ const onScrolltolower = () => {
     font-size: 26rpx;
     border-radius: 60rpx;
     color: #fff;
-    background-color: #27ba9b;
+    background-color: #ff8a34;
   }
 }
 
@@ -448,7 +449,7 @@ const onScrolltolower = () => {
 
   .checked::before {
     content: '\e6cc';
-    color: #27ba9b;
+    color: #ff8a34;
   }
 
   .text {
@@ -488,7 +489,7 @@ const onScrolltolower = () => {
     }
 
     .payment-button {
-      background-color: #27ba9b;
+      background-color: #ff8a34;
 
       &.disabled {
         opacity: 0.6;

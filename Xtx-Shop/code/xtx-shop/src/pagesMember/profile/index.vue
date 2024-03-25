@@ -151,11 +151,11 @@ const onRegionChange: UniHelper.RegionPickerOnChange = (ev) => {
           <text class="label">性别</text>
           <radio-group @change="onGenderChange">
             <label class="radio">
-              <radio value="男" color="#27ba9b" :checked="profile?.gender === '男'" />
+              <radio value="男" color="#ff8a34" :checked="profile?.gender === '男'" />
               男
             </label>
             <label class="radio">
-              <radio value="女" color="#27ba9b" :checked="profile?.gender === '女'" />
+              <radio value="女" color="#ff8a34" :checked="profile?.gender === '女'" />
               女
             </label>
           </radio-group>
@@ -209,7 +209,7 @@ page {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/order_bg.png);
+  background-image: url(@/static/images/myinfo_bg.png);
   background-size: auto 420rpx;
   background-repeat: no-repeat;
 }
@@ -263,7 +263,7 @@ page {
     padding-top: 20rpx;
     line-height: 1;
     font-size: 26rpx;
-    color: #fff;
+    color: #666;
   }
 }
 
@@ -326,7 +326,8 @@ page {
     color: #fff;
     border-radius: 80rpx;
     font-size: 30rpx;
-    background-color: #27ba9b;
+    // background-color: #27ba9b;
+    background-color: #ff8a34;
   }
 }
 </style>

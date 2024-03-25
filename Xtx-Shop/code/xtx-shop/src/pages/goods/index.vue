@@ -144,14 +144,9 @@ const getAddress = (item: AddressItem) => {
       v-model="isShowSku"
       :localdata="localdata"
       :mode="mode"
-      add-cart-background-color="#FFA868"
-      buy-now-background-color="#27BA9B"
+      add-cart-background-color="#ff8a34"
+      buy-now-background-color="#fe560a"
       ref="skuPopupRef"
-      :actived-style="{
-        color: '#27BA9B',
-        borderColor: '#27BA9B',
-        backgroundColor: '#E9F8F5',
-      }"
       @add-cart="onAddCart"
       @buy-now="onBuyNow"
     />
@@ -162,7 +157,7 @@ const getAddress = (item: AddressItem) => {
         <view class="preview">
           <swiper circular @change="onChange">
             <swiper-item v-for="item in goodsDetail?.mainPictures" :key="item">
-              <image @tap="onTapImage(item)" mode="aspectFill" :src="item" />
+              <image @tap="onTapImage(item)" mode="aspectFill" :src="item" class="swiper-image" />
             </swiper-item>
           </swiper>
           <view class="indicator">
@@ -216,6 +211,7 @@ const getAddress = (item: AddressItem) => {
           </view>
           <!-- 图片详情 -->
           <image
+            class="image"
             v-for="item in goodsDetail?.details.pictures"
             :key="item"
             mode="widthFix"
@@ -286,6 +282,11 @@ const getAddress = (item: AddressItem) => {
 .toolbar .icons a.navigator-wrap {
   flex: 1;
 }
+.swiper-image,
+.image {
+  width: 100%;
+  height: 100%;
+}
 /* #endif */
 
 page {
@@ -315,7 +316,8 @@ page {
       font-size: 28rpx;
       color: #333;
       font-weight: 600;
-      border-left: 4rpx solid #27ba9b;
+      // border-left: 4rpx solid #27ba9b;
+      border-left: 4rpx solid #ff8a34;
     }
     navigator {
       font-size: 24rpx;
@@ -379,7 +381,8 @@ page {
       color: #fff;
       font-size: 34rpx;
       box-sizing: border-box;
-      background-color: #35c8a9;
+      // background-color: #35c8a9;
+      background-color: #ff9402;
     }
     .number {
       font-size: 56rpx;
@@ -529,11 +532,13 @@ page {
       border-radius: 72rpx;
     }
     .addcart {
-      background-color: #ffa868;
+      // background-color: #ffa868;
+      background-color: #ff8a34;
     }
     .buynow,
     .payment {
-      background-color: #27ba9b;
+      // background-color: #27ba9b;
+      background-color: #fe560a;
       margin-left: 20rpx;
     }
   }

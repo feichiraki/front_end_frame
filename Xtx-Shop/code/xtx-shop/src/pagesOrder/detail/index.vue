@@ -12,6 +12,8 @@ import {
 import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
 import type { LogisticItem, OrderResult } from '@/types/order'
 import { onLoad, onReady } from '@dcloudio/uni-app'
+import { callWithAsyncErrorHandling } from 'vue'
+import { onMounted } from 'vue'
 import { ref } from 'vue'
 
 // 获取屏幕边界到安全区域距离
@@ -47,16 +49,21 @@ const pages = getCurrentPages()
 const pageInstance = pages.at(-1) as any
 // 页面渲染完毕，绑定动画效果
 onReady(() => {
+  // #ifdef MP-WEIXIN
+  // 小程序动画驱动:https://developers.weixin.qq.com/miniprogram/dev/framework/view/animation.html#%E6%BB%9A%E5%8A%A8%E9%A9%B1%E5%8A%A8%E7%9A%84%E5%8A%A8%E7%94%BB
   // 动画效果-导航栏背景色
   pageInstance.animate(
+    // 选择器
     '.navbar',
+    // keyframes:关键帧信息
     [{ backgroundColor: 'transparent' }, { backgroundColor: '#f8f8f8' }],
+    // 持续时间
     1000,
     {
       scrollSource: '#scroller',
       timeRange: 1000,
-      startScrollOffset: 0,
-      endScrollOffset: 50,
+      startScrollOffset: 0, // 动画开始偏移量
+      endScrollOffset: 50, // 动画结束的偏移量
     },
   )
   // 动画效果,导航栏标题
@@ -73,7 +80,12 @@ onReady(() => {
     startScrollOffset: 0,
     endScrollOffset: 50,
   })
+  // #endif
 })
+
+const handleScroll = (e: Event) => {
+  console.log(JSON.stringify(e))
+}
 
 // 获取订单详情
 const orderDetail = ref<OrderResult>()
@@ -173,10 +185,30 @@ const onCancelOrder = async () => {
     uni.redirectTo({ url: '/pagesOrder/list/index' })
   }, 500)
 }
+
+// 滚动事件
+const onScroll: UniHelper.ScrollViewOnScroll = (ev) => {
+  // #ifdef H5
+  const navbar: any = document.querySelector('.navbar')
+  const title: any = document.querySelector('.navbar .title')
+  const back: any = document.querySelector('.navbar .back')
+  const n = ev.detail.scrollTop
+  if (n >= 50) {
+    navbar.style.backgroundColor = '#f8f8f8'
+    title.style.color = '#000'
+    back.style.color = '#000'
+  } else {
+    navbar.style.backgroundColor = 'transparent'
+    title.style.color = 'transparent'
+    back.style.color = '#fff'
+  }
+  // #endif
+}
 </script>
 
 <template>
   <!-- 自定义导航栏: 默认透明不可见, scroll-view 滚动到 50 时展示 -->
+
   <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
     <view class="wrap">
       <navigator
@@ -189,7 +221,13 @@ const onCancelOrder = async () => {
       <view class="title">订单详情</view>
     </view>
   </view>
-  <scroll-view scroll-y class="viewport" id="scroller" @scrolltolower="onScrolltolower">
+  <scroll-view
+    scroll-y
+    class="viewport"
+    id="scroller"
+    @scroll="onScroll"
+    @onScrolltolower="onScrolltolower"
+  >
     <template v-if="orderDetail">
       <!-- 订单状态 -->
       <view class="overview" :style="{ paddingTop: safeAreaInsets!.top + 20 + 'px' }">
@@ -213,7 +251,9 @@ const onCancelOrder = async () => {
         <!-- 其他订单状态:展示再次购买按钮 -->
         <template v-else>
           <!-- 订单状态文字 -->
-          <view class="status"> {{ orderStateList[orderDetail.orderState].text }} </view>
+          <view class="status">
+            {{ orderStateList[orderDetail.orderState].text }}
+          </view>
           <view class="button-group">
             <navigator
               class="button"
@@ -310,7 +350,8 @@ const onCancelOrder = async () => {
         <view class="title">订单信息</view>
         <view class="row">
           <view class="item">
-            订单编号: {{ query.id }} <text class="copy" @tap="onCopy(query.id)">复制</text>
+            订单编号: {{ query.id }}
+            <text class="copy" @tap="onCopy(query.id)">复制</text>
           </view>
           <view class="item">下单时间: {{ orderDetail?.createTime }}</view>
         </view>
@@ -380,6 +421,20 @@ const onCancelOrder = async () => {
 </template>
 
 <style lang="scss">
+/* 定义动画 */
+/* #ifdef H5 */
+.navbar {
+  transition: all 0.3s;
+  .title {
+    transition: all 0.3s;
+  }
+  .back {
+    transition: all 0.3s;
+  }
+}
+
+/* #endif */
+
 page {
   display: flex;
   flex-direction: column;
@@ -437,7 +492,7 @@ page {
   line-height: 1;
   padding-bottom: 30rpx;
   color: #fff;
-  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/order_bg.png);
+  background-image: url(@/static/images/myinfo_bg.png);
   background-size: cover;
 
   .status {
@@ -474,8 +529,10 @@ page {
     text-align: center;
     line-height: 64rpx;
     font-size: 28rpx;
-    color: #27ba9b;
+    // color: #27ba9b;
+    color: #ff8a34;
     border-radius: 68rpx;
+    border: 1rpx solid #ff8a34;
     background-color: #fff;
   }
 }
@@ -497,7 +554,8 @@ page {
   }
 
   .locate {
-    background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/locate.png);
+    // background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/locate.png);
+    background-image: url(@/static/images/address.png);
 
     .user {
       font-size: 26rpx;
@@ -511,7 +569,7 @@ page {
   }
 
   .item {
-    background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/car.png);
+    background-image: url(@/static/images/yhz_car.png);
     border-bottom: 1rpx solid #eee;
     position: relative;
 
@@ -620,14 +678,18 @@ page {
         line-height: 60rpx;
         margin-left: 20rpx;
         border-radius: 60rpx;
-        border: 1rpx solid #ccc;
+        // border: 1rpx solid #fff;
+        border: 1rpx solid #ff8a34;
         font-size: 26rpx;
         color: #444;
       }
 
       .primary {
-        color: #27ba9b;
-        border-color: #27ba9b;
+        // color: #27ba9b;
+        // border-color: #27ba9b;
+
+        color: #ff8a34;
+        border-color: #ff8a34;
       }
     }
   }
@@ -654,6 +716,7 @@ page {
     .primary {
       color: #cf4444;
       font-size: 36rpx;
+      border: 1rpx solid #eee;
     }
   }
 }
@@ -738,18 +801,22 @@ page {
 
   .button {
     order: 3;
+    border-color: #ff8a34;
   }
 
   .secondary {
     order: 2;
-    color: #27ba9b;
-    border-color: #27ba9b;
+    // color: #27ba9b;
+    // border-color: #27ba9b;
+    color: #ff8a34;
+    border-color: #ff8a34;
   }
 
   .primary {
     order: 1;
     color: #fff;
-    background-color: #27ba9b;
+    // background-color: #27ba9b;
+    background-color: #ff8a34;
   }
 }
 
@@ -821,4 +888,3 @@ page {
   }
 }
 </style>
-@/composables/useGuess

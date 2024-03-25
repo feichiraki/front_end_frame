@@ -3,6 +3,7 @@ import { getMemberOrderPreAPI, getMemberOrderPreNowAPI, postMemberOrderAPI } fro
 import { useAddressStore } from '@/stores'
 import type { AddressItem } from '@/types/address'
 import type { OrderPreResult } from '@/types/order'
+import { getMemberAddressAPI } from '@/services/address'
 import { onLoad } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 
@@ -29,42 +30,59 @@ const onChangeDelivery: UniHelper.SelectorPickerOnChange = (ev) => {
 const query = defineProps<{
   skuId?: string
   count?: string
-  addressId?: string
+  addressId?: string // 在商品详情页选了地址
 }>()
 
 // 获取预订单数据
 const orderPreData = ref<OrderPreResult>({} as OrderPreResult)
 const getOrderPreData = async () => {
   // 是否有立即购买参数
-  if (query.addressId && query.skuId && query.count) {
+  if (query.skuId && query.count) {
     // 调用立即购买 API
-    const res = await getMemberOrderPreNowAPI({
+    const { result } = await getMemberOrderPreNowAPI({
       count: query.count,
       skuId: query.skuId,
       addressId: query.addressId,
     })
-    orderPreData.value = res.result
+    orderPreData.value = result
+    if (result.userAddresses.length === 0) {
+      getAddressList()
+    }
   } else {
     // 调用预付订单 API
-    const res = await getMemberOrderPreAPI()
-    orderPreData.value = res.result
+    console.log(1)
+    const { result } = await getMemberOrderPreAPI()
+    orderPreData.value = result
+    if (result.userAddresses.length === 0) {
+      getAddressList()
+    }
   }
 }
+
 // 页面加载生命钩子
-onLoad(async () => {
-  await getOrderPreData()
+onLoad(() => {
+  getOrderPreData()
 })
 
 // 计算收获地址
 const addressStore = useAddressStore()
+const addressList = ref<AddressItem[]>()
+const getAddressList = async () => {
+  const { result } = await getMemberAddressAPI()
+  addressList.value = result
+}
 const seletedAddress = computed(() => {
   // 这里需要判断一下，因为有两种途径创建预订单，所以地址也会出现不是默认地址情况
-  if (query.addressId) {
-    return addressStore.selectedAddress || orderPreData.value?.userAddresses[0]
+  if (query.addressId && addressStore.selectedAddress) {
+    return addressStore.selectedAddress
   } else {
-    return (
-      addressStore.selectedAddress || orderPreData.value?.userAddresses.find((v) => v.isDefault)
-    )
+    if (
+      Array.isArray(orderPreData.value.userAddresses) &&
+      orderPreData?.value.userAddresses.length === 0
+    ) {
+      return addressList.value?.find((v) => v.isDefault)
+    }
+    return orderPreData.value.userAddresses?.find((v) => v.isDefault)
   }
 })
 
@@ -92,7 +110,7 @@ const onOrderSubmit = async () => {
   <scroll-view scroll-y class="viewport">
     <!-- 收货地址 -->
     <navigator
-      v-if="seletedAddress"
+      v-if="seletedAddress?.id"
       class="shipment"
       hover-class="none"
       url="/pagesMember/address/index?from=order"
@@ -156,21 +174,22 @@ const onOrderSubmit = async () => {
     <view class="settlement">
       <view class="item">
         <text class="text">商品总价: </text>
-        <text class="number symbol">{{ orderPreData.summary.totalPrice }}</text>
+        <text class="number symbol">{{ orderPreData.summary?.totalPrice }}</text>
       </view>
       <view class="item">
         <text class="text">运费: </text>
-        <text class="number symbol">{{ orderPreData.summary.postFee }}</text>
+        <text class="number symbol">{{ orderPreData.summary?.postFee }}</text>
       </view>
     </view>
-  </scroll-view>
-  <!-- 吸底工具栏 -->
-  <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
-    <view class="total-pay symbol">
-      <text class="number">{{ orderPreData?.summary.totalPayPrice }}</text>
+
+    <!-- 吸底工具栏 -->
+    <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
+      <view class="total-pay symbol">
+        <text class="number">{{ orderPreData?.summary?.totalPayPrice }}</text>
+      </view>
+      <view class="button" :class="{ disabled: false }" @tap="onOrderSubmit"> 提交订单 </view>
     </view>
-    <view class="button" :class="{ disabled: false }" @tap="onOrderSubmit"> 提交订单 </view>
-  </view>
+  </scroll-view>
 </template>
 
 <style lang="scss">
@@ -193,8 +212,7 @@ page {
   padding: 30rpx 30rpx 30rpx 84rpx;
   font-size: 26rpx;
   border-radius: 10rpx;
-  background: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/locate.png)
-    20rpx center / 50rpx no-repeat #fff;
+  background: url(@/static/images/address.png) 20rpx center / 50rpx no-repeat #fff;
   position: relative;
 
   .icon {
@@ -382,7 +400,8 @@ page {
     font-size: 26rpx;
     color: #fff;
     border-radius: 72rpx;
-    background-color: #27ba9b;
+    // background-color: #27ba9b;
+    background-color: #ff8a34;
   }
 
   .disabled {

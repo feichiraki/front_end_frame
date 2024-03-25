@@ -56,7 +56,7 @@ page {
   line-height: 1;
   padding: 50rpx 0;
   color: #fff;
-  background-color: #27ba9b;
+  background-color: #ff8a34;
 
   .status {
     font-size: 36rpx;

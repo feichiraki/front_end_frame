@@ -156,9 +156,11 @@ page {
       padding: 4rpx 10rpx 2rpx 14rpx;
       margin: 2rpx 0 0 10rpx;
       font-size: 26rpx;
-      color: #27ba9b;
+      // color: #27ba9b;
+      color: #ff8a34;
       border-radius: 6rpx;
-      border: 1rpx solid #27ba9b;
+      // border: 1rpx solid #27ba9b;
+      border: 1rpx solid #ff8a34;
     }
   }
 
@@ -184,6 +186,7 @@ page {
   color: #fff;
   border-radius: 80rpx;
   font-size: 30rpx;
-  background-color: #27ba9b;
+  // background-color: #27ba9b;
+  background-color: #ff8a34;
 }
 </style>

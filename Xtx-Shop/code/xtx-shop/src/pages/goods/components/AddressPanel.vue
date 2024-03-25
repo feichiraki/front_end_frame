@@ -41,7 +41,7 @@ const gotoAddAddress = () => {
       </view>
     </view>
     <view class="footer">
-      <view class="button primary" @tap="gotoAddAddress"> 新建地址 </view>
+      <view class="button secondary" @tap="gotoAddAddress"> 新建地址 </view>
       <view v-if="addressList" class="button primary" @tap="emit('changeAddress', activeAddress)"
         >确定</view
       >
@@ -83,7 +83,7 @@ const gotoAddAddress = () => {
     background-size: 40rpx;
     background-repeat: no-repeat;
     background-position: 0 center;
-    background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/locate.png);
+    background-image: url(@/static/images/address.png);
     position: relative;
   }
   .icon {
@@ -95,7 +95,7 @@ const gotoAddAddress = () => {
     right: 0;
   }
   .selected {
-    color: #27ba9b;
+    color: #ffa868;
   }
   .icon-ring {
     color: #444;
@@ -130,11 +130,11 @@ const gotoAddAddress = () => {
 
   .primary {
     color: #fff;
-    background-color: #27ba9b;
+    background-color: #fe560a;
   }
 
   .secondary {
-    background-color: #ffa868;
+    background-color: #ff8a34;
   }
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMemberStore } from '@/stores'
 import { useGuessList } from '@/composables/useGuess'
+import PageSkeletonMy from './components/PageSkeleton_My.vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -20,67 +21,71 @@ const { guessRef, onScrolltolower } = useGuessList()
 
 <template>
   <scroll-view @scrolltolower="onScrolltolower" class="viewport" scroll-y enable-back-to-top>
-    <!-- 个人资料 -->
-    <view class="profile" :style="{ paddingTop: safeAreaInsets!.top + 'px' }">
-      <!-- 情况1：已登录 -->
-      <view class="overview" v-if="memberStore.profile">
-        <navigator url="/pagesMember/profile/profile" hover-class="none">
-          <!-- https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/avatar_3.jpg" -->
-          <image class="avatar" mode="aspectFill" :src="memberStore.profile?.avatar"></image>
-        </navigator>
-        <view class="meta">
-          <view class="nickname">
-            {{ memberStore.profile.nickname || memberStore.profile.account }}
-          </view>
-          <navigator class="extra" url="/pagesMember/profile/index" hover-class="none">
-            <text class="update">更新头像昵称</text>
+    <view class="container-header">
+      <!-- 个人资料 -->
+      <view class="profile" :style="{ paddingTop: safeAreaInsets!.top + 'px' }">
+        <!-- 情况1：已登录 -->
+        <view class="overview" v-if="memberStore.profile">
+          <navigator url="/pagesMember/profile/profile" hover-class="none">
+            <!-- https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/avatar_3.jpg" -->
+            <image class="avatar" mode="aspectFill" :src="memberStore.profile?.avatar"></image>
           </navigator>
-        </view>
-      </view>
-      <!-- 情况2：未登录 -->
-      <view class="overview" v-else>
-        <navigator url="/pages/login/login" hover-class="none">
-          <image
-            class="avatar gray"
-            mode="aspectFill"
-            src="http://yjy-xiaotuxian-dev.oss-cn-beijing.aliyuncs.com/picture/2021-04-06/db628d42-88a7-46e7-abb8-659448c33081.png"
-          ></image>
-        </navigator>
-        <view class="meta">
-          <navigator url="/pages/login/login" hover-class="none" class="nickname">
-            未登录
-          </navigator>
-          <view class="extra">
-            <text class="tips">点击登录账号</text>
+          <view class="meta">
+            <view class="nickname">
+              {{ memberStore.profile.nickname || memberStore.profile.account }}
+            </view>
+            <navigator class="extra" url="/pagesMember/profile/index" hover-class="none">
+              <text class="update">更新头像昵称</text>
+            </navigator>
           </view>
         </view>
-      </view>
-      <navigator class="settings" url="/pagesMember/settings/index" hover-class="none">
-        设置
-      </navigator>
-    </view>
-    <!-- 我的订单 -->
-    <view class="orders">
-      <view class="title">
-        我的订单
-        <navigator class="navigator" url="/pagesOrder/list/index?type=0" hover-class="none">
-          查看全部订单<text class="icon-right"></text>
+        <!-- 情况2：未登录 -->
+        <view class="overview" v-else>
+          <navigator url="/pages/login/login" hover-class="none">
+            <image
+              class="avatar gray"
+              mode="aspectFill"
+              src="http://yjy-xiaotuxian-dev.oss-cn-beijing.aliyuncs.com/picture/2021-04-06/db628d42-88a7-46e7-abb8-659448c33081.png"
+            ></image>
+          </navigator>
+          <view class="meta">
+            <navigator url="/pages/login/login" hover-class="none" class="nickname">
+              未登录
+            </navigator>
+            <view class="extra">
+              <text class="tips">点击登录账号</text>
+            </view>
+          </view>
+        </view>
+        <navigator class="settings" url="/pagesMember/settings/index" hover-class="none">
+          设置
         </navigator>
       </view>
-      <view class="section">
-        <!-- 订单 -->
-        <navigator
-          v-for="item in orderTypes"
-          :key="item.type"
-          :class="item.icon"
-          :url="`/pagesOrder/list/index?type=${item.type}`"
-          class="navigator"
-          hover-class="none"
-        >
-          {{ item.text }}
-        </navigator>
-        <!-- 客服 -->
-        <button class="contact icon-handset" open-type="contact">售后</button>
+      <!-- 我的订单 -->
+      <view class="orders">
+        <view class="title">
+          我的订单
+          <navigator class="navigator" url="/pagesOrder/list/index?type=0" hover-class="none">
+            查看全部订单<text class="icon-right"></text>
+          </navigator>
+        </view>
+        <view class="section">
+          <!-- 订单 -->
+          <navigator
+            v-for="item in orderTypes"
+            :key="item.type"
+            :class="item.icon"
+            :url="`/pagesOrder/list/index?type=${item.type}`"
+            class="navigator"
+            hover-class="none"
+          >
+            {{ item.text }}
+          </navigator>
+          <!-- #ifdef MP-WEIXIN -->
+          <!-- 客服 -->
+          <button class="contact icon-handset" open-type="contact">售后</button>
+          <!-- #endif -->
+        </view>
       </view>
     </view>
 
@@ -101,15 +106,19 @@ page {
 .viewport {
   height: 100%;
   background-repeat: no-repeat;
-  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/center_bg.png);
+  // background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/center_bg.png);
   background-size: 100% auto;
+}
+/* 头部容器 */
+.container-header {
+  padding-top: 20px;
+  background: linear-gradient(90deg, brown, orange, orange);
 }
 
 /* 用户信息 */
 .profile {
   margin-top: 20rpx;
   position: relative;
-
   .overview {
     display: flex;
     height: 120rpx;

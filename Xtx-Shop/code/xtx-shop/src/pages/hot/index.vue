@@ -140,6 +140,12 @@ page {
   position: absolute;
   left: 0;
   top: 0;
+  /* #ifdef H5 */
+  image {
+    width: 100%;
+    height: 100%;
+  }
+  /* #endif */
 }
 
 .scroll-view {

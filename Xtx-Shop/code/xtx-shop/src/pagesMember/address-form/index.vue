@@ -169,7 +169,7 @@ const formRef = ref<UniHelper.UniFormsInstance>()
         <switch
           class="switch"
           @change="onSwitchChange"
-          color="#27ba9b"
+          color="#ff8a34"
           :checked="form.isDefault === 1"
         />
       </view>
@@ -273,6 +273,7 @@ page {
   color: #fff;
   border-radius: 80rpx;
   font-size: 30rpx;
-  background-color: #27ba9b;
+  // background-color: #27ba9b;
+  background-color: #ff8a34;
 }
 </style>

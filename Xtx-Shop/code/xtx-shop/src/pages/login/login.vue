@@ -48,11 +48,15 @@ const loginSuccess = (profile: LoginResult) => {
   memberStore.setProfile(profile)
   // 成功提示
   uni.showToast({ icon: 'success', title: '登录成功' })
+  const page = getCurrentPages()
   setTimeout(() => {
-    // 页面跳转
-    // uni.switchTab({ url: '/pages/my/my' })
-    // 返回上一页
-    uni.navigateBack()
+    if (page.length > 1) {
+      // 返回上一页
+      uni.navigateBack()
+    } else {
+      // 页面跳转
+      uni.switchTab({ url: '/pages/my/my' })
+    }
   }, 500)
 }
 </script>
@@ -60,9 +64,7 @@ const loginSuccess = (profile: LoginResult) => {
 <template>
   <view class="viewport">
     <view class="logo">
-      <image
-        src="https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/logo_icon.png"
-      ></image>
+      <image src="./assets/cz_logo1.png"></image>
     </view>
     <view class="login">
       <!-- 网页端表单登录 -->
@@ -86,16 +88,21 @@ const loginSuccess = (profile: LoginResult) => {
         <view class="options">
           <!-- 通用模拟登录 -->
           <button @tap="onGetphonenumberSimple">
-            <text class="icon icon-phone">模拟快捷登录</text>
+            <text class="icon icon-phone">快捷登录</text>
           </button>
         </view>
       </view>
-      <view class="tips">登录/注册即视为你同意《服务条款》和《小兔鲜儿隐私协议》</view>
+      <view class="tips">登录/注册即视为你同意《服务条款》和《橙子商城隐私协议》</view>
     </view>
   </view>
 </template>
 
 <style lang="scss">
+/* #ifdef H5 */
+uni-button:after {
+  border: none;
+}
+/* #endif */
 page {
   height: 100%;
 }
@@ -149,11 +156,13 @@ page {
   }
 
   .phone {
-    background-color: #28bb9c;
+    // background-color: #28bb9c;
+    background-color: #ff8a34;
   }
 
   .wechat {
-    background-color: #06c05f;
+    // background-color: #06c05f;
+    background-color: #ff8a34;
   }
 
   .extra {
@@ -206,8 +215,10 @@ page {
       }
     }
     .icon-weixin::before {
-      border-color: #06c05f;
-      color: #06c05f;
+      // border-color: #06c05f;
+      // color: #06c05f;
+      border-color: #ff8a34;
+      color: #ff8a34;
     }
   }
 }

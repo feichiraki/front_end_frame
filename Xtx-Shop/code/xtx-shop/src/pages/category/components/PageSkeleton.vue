@@ -13,7 +13,7 @@
       <!-- 分类区域 -->
       <view class="categories categories">
         <!-- 左侧一级分类 -->
-        <scroll-view scroll-y="true" class="primary primary">
+        <scroll-view :scroll-y="true" class="primary primary">
           <view class="item sk-pseudo sk-pseudo-circle">
             <text class="name sk-transparent sk-text-14-2857-28 sk-text">居家</text>
           </view>
@@ -43,10 +43,10 @@
           </view>
         </scroll-view>
         <!-- 右侧二级分类 -->
-        <scroll-view scroll-y="true" class="secondary secondary">
+        <scroll-view :scroll-y="true" class="secondary secondary">
           <view is="components/XtxSwiper" class="banner banner">
             <view class="carousel XtxSwiper--carousel">
-              <swiper circular="true" interval="3000" current="0" autoplay="false">
+              <swiper :circular="true" :interval="3000" :current="0" :autoplay="false">
                 <swiper-item
                   style="
                     position: absolute;
@@ -165,7 +165,11 @@
   </view>
 </template>
 
-<style>
+<style lang="scss">
+/* 搜索框样式 */
+@import './styles/search.scss';
+/* 分类样式 */
+@import './styles/category.scss';
 .sk-transparent {
   color: transparent !important;
 }

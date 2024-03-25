@@ -24,7 +24,8 @@
         <view class="meta meta">
           <view class="price price">
             <text class="symbol sk-transparent sk-opacity">¥</text>
-            <text class="number sk-transparent sk-text-14-2857-548 sk-text">69.00</text>
+            <!-- <text class="number sk-transparent sk-text-14-2857-548 sk-text">69.00</text> -->
+            <text class="number sk-transparent sk-text">69.00</text>
           </view>
           <view class="name ellipsis sk-transparent sk-text-14-2857-524 sk-text"
             >全新升级，四川酸辣粉195克*6杯</view
