@@ -178,6 +178,7 @@ const onRegionChange: UniHelper.RegionPickerOnChange = (ev) => {
         <!-- 城市 -->
         <view class="form-item">
           <text class="label">城市</text>
+          <!-- #ifdef MP-WEIXIN -->
           <picker
             class="picker"
             @change="onRegionChange"
@@ -187,6 +188,24 @@ const onRegionChange: UniHelper.RegionPickerOnChange = (ev) => {
             <view v-if="profile?.fullLocation">{{ profile?.fullLocation }}</view>
             <view class="placeholder" v-else>请选择城市</view>
           </picker>
+          <!-- #endif -->
+
+          <!-- #ifdef H5 || APP-PLUS -->
+          <uni-data-picker
+            placeholder="请选择地址"
+            popup-title="请选择城市"
+            collection="opendb-city-china"
+            field="code as value, name as text"
+            orderby="value asc"
+            :step-searh="true"
+            self-field="code"
+            parent-field="parent_code"
+            :clear-icon="false"
+            @change="onRegionChange"
+            v-model="fullLocationCode[2]"
+          >
+          </uni-data-picker>
+		<!-- #endif -->
         </view>
         <!-- 职业 -->
         <view class="form-item">
@@ -313,6 +332,7 @@ page {
     .picker {
       flex: 1;
     }
+
     .placeholder {
       color: #808080;
     }
