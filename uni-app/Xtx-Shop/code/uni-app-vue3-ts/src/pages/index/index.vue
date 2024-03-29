@@ -1,11 +1,19 @@
-<template>
-  <view></view>
-</template>
-
 <script setup lang="ts">
-import { ref } from 'vue'
-const title = ref('Hello uni-app !')
+import { ref } from "vue"
+
+const title = ref("Hello uni-app !")
 </script>
+
+<template>
+  <view>
+    <uni-calendar
+      :insert="true"
+      :lunar="true"
+      :start-date="'2019-3-2'"
+      :end-date="'2019-5-20'"
+    />
+  </view>
+</template>
 
 <style>
 .content {
