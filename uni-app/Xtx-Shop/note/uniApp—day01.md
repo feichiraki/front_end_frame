@@ -758,7 +758,6 @@ export const request = <T>(options: UniApp.RequestOptions) => {
                     reject(res)
                 }
             },
-
             // 3.请求失败
             fail(err) {
                 // 3.1 网络失败 => 提示用户换网络
